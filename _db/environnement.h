@@ -5,7 +5,7 @@
 
 
 //// TO CHANGE DEV TO PROD
-const static QString current_env = "prod";
+const static QString current_env = "dev";
 //const static QString current_env = "dev";
 const static QString current_version = "3.05";
 const static QString date_released = "16/03/2019";  //(dd/mm/yyyy)

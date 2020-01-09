@@ -117,7 +117,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
 
-    ftb->setCurrentIndex(0);
+    ftb->setCurrentIndex(5);
     connect(ftb, SIGNAL(currentChanged(int)), this, SLOT(leftMenuChanged(int)) );
 
 
@@ -141,7 +141,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->tab_workout1->parseUserWorkouts();
 
 
-    currentIndexLeftMenu = 0;
+    currentIndexLeftMenu = 5;
     ftpChanged = false;
 
 
@@ -186,9 +186,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(dconfig, SIGNAL(folderWorkoutChanged()), ui->tab_workout1, SLOT(refreshUserWorkout()) );
 
 
-    leftMenuChanged(0);
+    leftMenuChanged(5);
     enableStudioMode(account->enable_studio_mode);
 
+    qDebug() << "before get radio......";
 
 
     ///Retrieve Internet Radio from DB
@@ -206,6 +207,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->webView_ergDb->page()->profile(), SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
                     this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
+
+    //////////////Necar mod///////////////
+    isSensorStart = false;
 
 }
 
@@ -257,6 +261,15 @@ void MainWindow::startHub() {
     connect(this, SIGNAL(signal_searchForSensor(int, bool, int, bool)), hub, SLOT(startPairing(int, bool, int, bool)) );
     connect(this, SIGNAL(signal_stopPairing()), hub, SIGNAL(stopPairing()) );
 
+    //////////////////////////////
+    /// necar mod
+    ///
+    lstSensor.clear();
+    connect(this, SIGNAL(sendSoloData(PowerCurve,int, QList<Sensor>, bool, bool)), hub, SLOT(setSoloDataToHub(PowerCurve,int, QList<Sensor>, bool, bool)) );
+
+    connect(hub, SIGNAL(signal_cadence(int, int)), this, SLOT(cadenceDataReceived(int, int)));
+
+
     thread->start();
 
     emit signal_hubInitUsbStick(numberInitStickDone);
@@ -284,16 +297,16 @@ void MainWindow::slotFinishedGetRadio() {
 
 
     //success
-    if (replyRadio->error() == QNetworkReply::NoError) {
+/*    if (replyRadio->error() == QNetworkReply::NoError) {
         qDebug() << "Get radio finished!";
         QByteArray arrayData =  replyRadio->readAll();
         lstRadio = Util::parseJsonRadioList(arrayData);
         //enable mainWindow
         ui->widget_bottomMenu->removeGeneralMessage();
-
+*/
         replyRadioDone = true;
         checkToEnableWindow();
-
+/*
 
         replyRadio->deleteLater();
     }
@@ -303,7 +316,7 @@ void MainWindow::slotFinishedGetRadio() {
         replyRadio = RadioDAO::getAllRadios();
         connect(replyRadio, SIGNAL(finished()), this, SLOT(slotFinishedGetRadio()));
     }
-
+*/
 }
 
 
@@ -1064,16 +1077,18 @@ void MainWindow::sendDataToSettingsOrStudioPage(int deviceType, int numberDevice
     QString arg4 = temp2.join(',');
     QString arg5 = QString::number(fromStudioPage);
 
-    QString jsToRun = script.arg(arg1, arg2, arg3, arg4, arg5);
-    qDebug() << "here is the script to run:" << jsToRun;
+    //QString jsToRun = script.arg(arg1, arg2, arg3, arg4, arg5);
+    //qDebug() << "here is the script to run:" << jsToRun;
 
     if (fromStudioPage) {
         qDebug() << "send the script to studio page";
-        ui->webView_studio->page()->runJavaScript(jsToRun);
+        //ui->webView_studio->page()->runJavaScript(jsToRun);
     }
     else {
         qDebug() << "send the script to settings page";
-        ui->webView_settings->page()->runJavaScript(jsToRun);
+        //ui->webView_settings->page()->runJavaScript(jsToRun);
+        ui->listWidget_cadence->clear();
+        ui->listWidget_cadence->addItems(temp);
     }
 
 }
@@ -1739,18 +1754,18 @@ void MainWindow::searchSensor(int typeSensor, bool fromStudioPage) {
 
 
     QString noAntStickDetected = tr("No Ant Stick detected!\\nPlease insert one or more and restart MaximumTrainer.");
-    QString jsCode = "alert('" + noAntStickDetected + "');";
+    //QString jsCode = "alert('" + noAntStickDetected + "');";
 
     QList<int> lstBidon;
 
     if (numberStickFound == 0 && fromStudioPage) {
         qDebug() << "NO STICK STUDIO PAGE, Show alert";
-        ui->webView_studio->page()->runJavaScript(jsCode);
+        //ui->webView_studio->page()->runJavaScript(jsCode);
         sendDataToSettingsOrStudioPage(typeSensor, 0, lstBidon, lstBidon, true);
     }
     else if (numberStickFound == 0) {
         qDebug() << "NO STICK SEttings PAGE, Show alert";
-        ui->webView_settings->page()->runJavaScript(jsCode);
+        //ui->webView_settings->page()->runJavaScript(jsCode);
         sendDataToSettingsOrStudioPage(typeSensor, 0, lstBidon, lstBidon, false);
     }
     else {
@@ -1777,3 +1792,42 @@ void MainWindow::updateTrainerCurve(int trainer_id, QString companyName, QString
     qDebug() << "ok trainerID is now:" << account->powerCurve.getId();
 }
 
+
+void MainWindow::on_pushButton_Cadence_search_clicked()
+{
+    searchSensor(constants::cadDeviceType, false);
+}
+
+void MainWindow::on_pushButton_Cadence_connect_clicked()
+{
+    QString sensorId = ui->listWidget_cadence->currentItem()->text();
+    Sensor* cadence = new Sensor(sensorId.toInt(), Sensor::SENSOR_TYPE::SENSOR_CADENCE, "", "");
+    lstSensor.append(*cadence);
+    ui->label_cadence_connected->setText(sensorId);
+}
+
+void MainWindow::on_pushButton_sensor_decode_clicked()
+{
+    if(!isSensorStart){
+        qDebug() << "Ok start sensors now !";
+        sendSoloData(account->powerCurve, account->wheel_circ, lstSensor, account->use_pm_for_cadence, account->use_pm_for_speed);
+    }
+}
+
+void MainWindow::cadenceDataReceived(int userID, int value){
+    ui->lcdNumber_cadence_1->display(0);
+    ui->lcdNumber_cadence_2->display(0);
+    ui->lcdNumber_cadence_3->display(0);
+    int index = 3;
+    while(value > 0){
+        int digit = value % 10;
+        switch(index){
+        case 3: ui->lcdNumber_cadence_3->display(digit);break;
+        case 2: ui->lcdNumber_cadence_2->display(digit);break;
+        case 1: ui->lcdNumber_cadence_1->display(digit);break;
+        }
+
+        index--;
+        value /= 10;
+    }
+}

@@ -51,6 +51,8 @@ signals :
     //-------------------------------------
 
 
+    ////////////////////////////////////////
+    void sendSoloData(PowerCurve curve, int wheelCircMM, QList<Sensor> lstSensor, bool usePmForCadence, bool usePmForSpeed);
 
 
 
@@ -116,6 +118,10 @@ public slots:
     //tempo
     void postDataAccountFinished();
 
+    //////////////////////////
+    /// necar mod
+    ///
+    void cadenceDataReceived(int userID, int value);
 
 
 private slots:
@@ -157,6 +163,12 @@ private slots:
     void createWebChannelZone();
     void createWebChannelSettings();
     void createWebChannelStudio();
+
+    void on_pushButton_Cadence_search_clicked();
+
+    void on_pushButton_Cadence_connect_clicked();
+
+    void on_pushButton_sensor_decode_clicked();
 
 private:
     void loadSettings();
@@ -232,6 +244,10 @@ private:
     bool isInsideWorkout;
 
     QString lastWorkoutNameDownloaded;
+
+    ////////////////////////////Necar mod////////////////////////////
+    bool isSensorStart;
+    QList<Sensor> lstSensor;
 
 };
 

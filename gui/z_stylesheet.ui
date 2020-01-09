@@ -19,7 +19,7 @@
   <property name="styleSheet">
    <string notr="true">
 QMainWindow#MainWindow {
-	background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #2a2a2a, stop: 1.0 #4b4b4b);
+        background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 #f0f0f0, stop: 1.0 #ffffff);
 }
 
 QLabel#label_headerMain {

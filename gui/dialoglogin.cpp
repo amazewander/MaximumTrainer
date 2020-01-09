@@ -80,8 +80,8 @@ DialogLogin::DialogLogin(QWidget *parent) : QDialog(parent), ui(new Ui::DialogLo
 
     /// Check if new version APP available
     /// //TODO; show loading icon before response
-    replyVersion = VersionDAO::getVersion();
-    connect(replyVersion, SIGNAL(finished()), this, SLOT(slotFinishedGetVersion()));
+    //replyVersion = VersionDAO::getVersion();
+    //connect(replyVersion, SIGNAL(finished()), this, SLOT(slotFinishedGetVersion()));
     // --------------------------------------------
 
     connect(ui->webView_login, SIGNAL(loadProgress(int)), this, SLOT(showLoadingProgress(int)));

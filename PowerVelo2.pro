@@ -15,11 +15,12 @@ else: DEFINES += QT_NO_UITOOLS
 # Used if you want console output on windows
 #CONFIG += console
 #CONFIG += qwt qt thread
-CONFIG += release
+#CONFIG += release
+CONFIG += debug
 CONFIG += c++11
 
 # For Release, disable QDebug for performance
-DEFINES += QT_NO_DEBUG_OUTPUT
+#DEFINES += QT_NO_DEBUG_OUTPUT
 
 
 
@@ -48,7 +49,7 @@ win32 {
     #--------- SFML
     LIBS += -LF:/Workspaces/Qt/SFML/lib
 
-    CONFIG(release, debug|release): LIBS += -lsfml-audio -lsfml-system
+    CONFIG(release, release): LIBS += -lsfml-audio -lsfml-system
 
     INCLUDEPATH += F:/Workspaces/Qt/SFML/include
     DEPENDPATH += F:/Workspaces/Qt/SFML/include
@@ -72,7 +73,8 @@ win32 {
     INCLUDEPATH += F:\Workspaces\Qt\ANT-SDK_PC.3.5\ANT_LIB\software\USB\device_handles
     INCLUDEPATH += F:\Workspaces\Qt\ANT-SDK_PC.3.5\ANT_LIB\software\USB\devices
 
-    LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Release" -lANT_LIB
+    LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Debug" -lANT_LIB
+    #LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Release" -lANT_LIB
 
 }
 #////////////////////////////////////////////////////////////////////////////////////////////////////////

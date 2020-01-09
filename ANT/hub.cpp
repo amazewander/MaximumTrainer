@@ -835,25 +835,25 @@ void Hub::setSoloDataToHub(PowerCurve curve, int wheelCircMM, QList<Sensor> lstS
 
         qDebug() << "DeviceTYPE?" << s.getDeviceType();
 
-        if (s.getDeviceType() == constants::hrDeviceType) {
+        if (s.getDeviceType() == Sensor::SENSOR_HR) {
             hashSensorHr.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::cadDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_CADENCE) {
             hashSensorCad.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::speedCadDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_SPEED_CADENCE) {
             hashSensorSpeedCad.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::speedDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_SPEED) {
             hashSensorSpeed.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::powerDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_POWER) {
             hashSensorPower.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::fecDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_FEC) {
             hashSensorFEC.insert(s.getAntId(), userID);
         }
-        else if (s.getDeviceType() == constants::oxyDeviceType) {
+        else if (s.getDeviceType() == Sensor::SENSOR_OXYGEN) {
             hashSensorOxy.insert(s.getAntId(), userID);
         }
     }

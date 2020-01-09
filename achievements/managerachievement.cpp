@@ -17,8 +17,8 @@ ManagerAchievement::ManagerAchievement(QObject *parent) : QObject(parent)
 
 
     // Retrieve achievement list from DB
-    replyGetListAchievement = AchievementDAO::getLstAchievement();
-    connect(replyGetListAchievement, SIGNAL(finished()), this, SLOT(slotGetAchievementListFinished()) );
+    //replyGetListAchievement = AchievementDAO::getLstAchievement();
+    //connect(replyGetListAchievement, SIGNAL(finished()), this, SLOT(slotGetAchievementListFinished()) );
 
 
 

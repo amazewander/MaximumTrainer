@@ -37,13 +37,13 @@ int main(int argc, char *argv[]) {
     Z_StyleSheet styleSheetDummy;
     app.setStyleSheet(styleSheetDummy.styleSheet());
 
-    DialogLogin login;
-    if (login.exec() != QDialog::Accepted) {
-        return 0; // Login refused
-    }
-    if (login.getGotUpdate()) {
-        return 0; // Executed DialogLogin and redirected to download new version
-    }
+//    DialogLogin login;
+//    if (login.exec() != QDialog::Accepted) {
+//        return 0; // Login refused
+//    }
+//    if (login.getGotUpdate()) {
+//        return 0; // Executed DialogLogin and redirected to download new version
+//    }
     MainWindow w;
     w.show();
 
