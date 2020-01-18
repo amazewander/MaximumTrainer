@@ -10,13 +10,6 @@
 #include "environnement.h"
 #include "workoututil.h"
 
-#include <QWebEngineView>
-#include <QWebEngineProfile>
-#include <QWebEngineScript>
-#include <QWebEnginePage>
-#include <QWebEngineScriptCollection>
-#include <QWebChannel>
-
 
 
 
@@ -68,7 +61,6 @@ Main_WorkoutPage::Main_WorkoutPage(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->tableView_workout->setModel(proxyModel);
     ui->tableView_workout->verticalHeader()->setDefaultSectionSize(60);
 
-    connectWebChannelWorkout();
     ui->webView_workouts->setUrl(QUrl(Environnement::getUrlWorkout()));
 
 
@@ -157,73 +149,11 @@ void Main_WorkoutPage::parseMapWorkout(int userFTP) {
 }
 
 
-
-
-//---------------------------------------------------------------------------------------------------------
-void Main_WorkoutPage::connectWebChannelWorkout() {
-
-
-    qDebug() << "connectWebChannelWorkout";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var workoutObject"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     workoutObject = channel.objects.workoutObject;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_workouts);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        ui->webView_workouts->page()->scripts().insert(script);
-        ui->webView_workouts->page()->setWebChannel(channel);
-        channel->registerObject("workoutObject", this);
-    }
-
-
-    if (!account->show_included_workout) {
-        ui->checkBox->setChecked(false);
-        filterChangedWorkoutType(false);
-    }
-
-}
-
-
 //---------------------------------------------------------------------------------------------------------
 void Main_WorkoutPage::fillWorkoutPage() {
 
 
     qDebug() << "fillWorkoutPage";
-
-    QString jsCode;
-    jsCode = QString("$('#name-workout').val('%1');").arg(nameFilter);
-    jsCode += QString("$('#plan-workout').val('%1');").arg(planFilter);
-    jsCode += QString("$('#creator-workout').val('%1');").arg(creatorFilter);
-
-    if (typeFilter != -1) {
-        jsCode += QString("$('#select-type-workout').val(%1);").arg(typeFilter);
-        jsCode += "$('#select-type-workout').selectpicker('refresh');";
-        jsCode += "$('#select-type-workout').trigger('change');";
-    }
-
-
-    qDebug() << "JSTOEXECUTE IS:" << jsCode;
-    ui->webView_workouts->page()->runJavaScript(jsCode);
 
     filterChanged("name", nameFilter);
     filterChanged("plan", planFilter);
@@ -464,16 +394,6 @@ void Main_WorkoutPage::setFilterPlanName(const QString& plan) {
 
     qDebug() << "setFilterPlanName";
 
-    QString jsToExecute = "$('#name-workout').val( '' ); ";
-    jsToExecute += QString("$('#plan-workout').val( '%1' ); ").arg(plan);
-    jsToExecute += "$('#creator-workout').val( '' ); ";
-
-    jsToExecute += "$('#select-type-workout option:selected').prop('selected', false); ";
-    jsToExecute += "$('#select-type-workout').selectpicker('refresh'); ";
-
-
-    ui->webView_workouts->page()->runJavaScript(jsToExecute);
-
 
     filterChanged("", "");
     filterChanged("plan", plan);
@@ -490,16 +410,6 @@ void Main_WorkoutPage::setFilterWorkoutName(const QString& workoutName) {
 
 
     qDebug() << "setFilterWorkoutName";
-
-    QString jsToExecute = "$('#plan-workout').val( '' ); ";
-    jsToExecute += QString("$('#name-workout ').val( '%1' ); ").arg(workoutName);
-    jsToExecute += "$('#creator-workout').val( '' ); ";
-
-    jsToExecute += "$('#select-type-workout option:selected').prop('selected', false); ";
-    jsToExecute += "$('#select-type-workout').selectpicker('refresh'); ";
-
-    ui->webView_workouts->page()->runJavaScript(jsToExecute);
-
 
     filterChanged("", "");
     filterChanged("name", workoutName);

@@ -78,6 +78,11 @@ WorkoutPlotZoomer::WorkoutPlotZoomer(QWidget *parent) :
 
 
 
+    this->enableAxis(QwtPlot::yLeft,false);
+    this->enableAxis(QwtPlot::xBottom,false);
+
+    this->diffLevel = 0;
+
 }
 
 
@@ -150,6 +155,11 @@ void WorkoutPlotZoomer::setStopped(bool b) {
 }
 
 
+void WorkoutPlotZoomer::setBackgroundColor(QColor *color){
+    canvas()->setStyleSheet(" QwtPlotCanvas { background-color: " + color->name(QColor::HexArgb) + "; }");
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// init
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,18 +178,20 @@ void WorkoutPlotZoomer::init(GRAPH_TYPE graph, bool firstInit) {
         setAxisScaleDraw( QwtPlot::xBottom, new TimeScaleDraw( timeStartWorkout ) );
         setAxisScale( QwtPlot::xBottom, d_interval.minValue(), d_interval.maxValue(), 10 );
 
-        canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
+        //canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
         canvas()->setCursor(Qt::CrossCursor);
 
         QFont fontBig;
-        fontBig.setPointSize(24);
+        fontBig.setPointSize(30);
+        fontBig.setFamily("Bahnschrift Condensed");
+        fontBig.setWeight(50);
 
         valueQwtText = QwtText("0");
         valueQwtText.setBorderRadius(3.0);
         valueQwtText.setFont(fontBig);
         valueQwtText.setRenderFlags( Qt::AlignHCenter | Qt::AlignTop );
         //    valueQwtText.setBackgroundBrush(QBrush(Util::getColor(Util::ON_TARGET), Qt::SolidPattern));
-        valueQwtText.setColor(Qt::white);
+        valueQwtText.setColor(Qt::black);
         qwtTextLabel = new QwtPlotTextLabel();
         qwtTextLabel->setText( valueQwtText );
         qwtTextLabel->attach( this );
@@ -546,6 +558,69 @@ void WorkoutPlotZoomer::updateCurve(double timeNow, int value) {
     curve->setSamples(samples);
     curve->attach(this);
 
+
+
+    /// Ajust graph if we have no target right now
+    if (noTarget) {
+        if (type == GRAPH_TYPE::POWER) {
+            if (value < leftLow || value > leftHigh) {
+                leftLow = value - 15;
+                leftHigh = value + 15 ;
+            }
+        }
+        else if(type == GRAPH_TYPE::HEART_RATE) {
+            if (value < leftLow || value > leftHigh) {
+                leftLow = value - 10;
+                leftHigh = value + 10 ;
+            }
+        }
+        else {  //Cadence
+            if (value < leftLow || value > leftHigh) {
+                //                qDebug() << "Ajust scale here cadence";
+                leftLow = value - 15;
+                leftHigh = value + 15 ;
+            }
+        }
+    }
+    ///------------------
+
+
+
+    int diff = value - target;
+
+    if (isStopped) {
+        //canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
+        replot();
+    }
+    else {
+        if (target < 0) {  /// no target
+            //canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
+        }
+
+        if ( ((diff <= targetRange) && (diff >= (-targetRange))) && this->diffLevel != 0) {
+            this->diffLevel = 0;
+            emit(diffTypeChanged(this->diffLevel));
+        }
+        else {
+            int level;
+            if(diff > targetRange){
+                level = (diff - targetRange) / 10 + 1;
+                if(level > 5){
+                    level = 5;
+                }
+            }else {
+                level = (diff + targetRange) / 10 - 1;
+                if(level < -5){
+                    level = -5;
+                }
+            }
+            if(this->diffLevel != level){
+                this->diffLevel = level;
+                emit(diffTypeChanged(this->diffLevel));
+            }
+        }
+
+    }
 }
 
 
@@ -584,7 +659,7 @@ void WorkoutPlotZoomer::moveIntervalTarget(double target, int range) {
     }
     else {
         noTarget = true;
-        return; /// range will be calculated when received data (updateTextLabelValue)
+        return; /// range will be calculated when received data
     }
 
 
@@ -632,55 +707,6 @@ void WorkoutPlotZoomer::updateTextLabelValue(int value) {
     valueQwtText.setText(QString::number(value));
     qwtTextLabel->setText( valueQwtText );
 
-
-    /// Ajust graph if we have no target right now
-    if (noTarget) {
-        if (type == GRAPH_TYPE::POWER) {
-            if (value < leftLow || value > leftHigh) {
-                leftLow = value - 15;
-                leftHigh = value + 15 ;
-            }
-        }
-        else if(type == GRAPH_TYPE::HEART_RATE) {
-            if (value < leftLow || value > leftHigh) {
-                leftLow = value - 10;
-                leftHigh = value + 10 ;
-            }
-        }
-        else {  //Cadence
-            if (value < leftLow || value > leftHigh) {
-                //                qDebug() << "Ajust scale here cadence";
-                leftLow = value - 15;
-                leftHigh = value + 15 ;
-            }
-        }
-    }
-    ///------------------
-
-
-
-    int diff = value - target;
-
-    if (isStopped) {
-        canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
-        replot();
-    }
-    else {
-        if (target < 0) {  /// no target
-            canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");;
-        }
-        /// Change background QwtText
-        else if ( (diff < (-targetRange)) ) {
-            canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(14, 61, 170); }");
-        }
-        else if( (diff > targetRange) ) {
-            canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(128, 0, 0); }");
-        }
-        else if ( ((diff < targetRange) && (diff > (-targetRange)))) {
-            canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
-        }
-
-    }
 }
 
 
@@ -705,7 +731,7 @@ void WorkoutPlotZoomer::targetChanged(double percentageTarget, int range ) {
 
     replot();
 
-
+    updateTextLabelValue(this->target);
 }
 
 

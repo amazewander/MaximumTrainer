@@ -81,13 +81,20 @@ WorkoutPlot::WorkoutPlot(QWidget *parent) : QwtPlot(parent) {
     d_picker->setStateMachine(pickerMachine );
     connect(d_picker, SIGNAL(selected(QPointF)), this, SLOT(pointClicked(QPointF)) );
 
-    canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
+    //canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
     canvas()->setCursor(Qt::CrossCursor);
 
 
 
 }
 
+
+void WorkoutPlot::setBackgroundColor(QColor *color){
+    canvas()->setStyleSheet(" QwtPlotCanvas { background-color: " + color->name(QColor::HexArgb) + "; }");
+    zoneDone->setColor(color->name(QColor::HexArgb));
+    QColor lighterColor = color->lighter(300);
+    zoneToDo->setColor(lighterColor.name(QColor::HexArgb));
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,6 +266,8 @@ void WorkoutPlot::updateAxisHelper() {
         }
     }
 
+    this->enableAxis(QwtPlot::yLeft,false);
+    this->enableAxis(QwtPlot::xBottom,false);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -329,18 +338,18 @@ void WorkoutPlot::init(bool firstInit) {
 
 
 
-        spinBoxDifficulty = new QSpinBox(this);
-        spinBoxDifficulty->setButtonSymbols(QAbstractSpinBox::PlusMinus);
-        spinBoxDifficulty->setMinimum(-100);
-        spinBoxDifficulty->setMaximum(100);
-        spinBoxDifficulty->setSuffix("%"); //±%
-        spinBoxDifficulty->setFixedHeight(40);
-        spinBoxDifficulty->setFixedWidth(100);
-        spinBoxDifficulty->setValue(0);
-        spinBoxDifficulty->setStyleSheet("background-color : rgb(35,35,35); color : white;");
-        //        spinBoxDifficulty->setKeyboardTracking(false);
-        spinBoxDifficulty->setCursor(Qt::ArrowCursor);
-        connect(spinBoxDifficulty, SIGNAL(valueChanged(int)), this, SIGNAL(workoutDifficultyChanged(int)));
+//        spinBoxDifficulty = new QSpinBox(this);
+//        spinBoxDifficulty->setButtonSymbols(QAbstractSpinBox::PlusMinus);
+//        spinBoxDifficulty->setMinimum(-100);
+//        spinBoxDifficulty->setMaximum(100);
+//        spinBoxDifficulty->setSuffix("%"); //±%
+//        spinBoxDifficulty->setFixedHeight(40);
+//        spinBoxDifficulty->setFixedWidth(100);
+//        spinBoxDifficulty->setValue(0);
+//        spinBoxDifficulty->setStyleSheet("background-color : rgb(35,35,35); color : white;");
+//        //        spinBoxDifficulty->setKeyboardTracking(false);
+//        spinBoxDifficulty->setCursor(Qt::ArrowCursor);
+//        connect(spinBoxDifficulty, SIGNAL(valueChanged(int)), this, SIGNAL(workoutDifficultyChanged(int)));
 
 
 //Display is not good on Windows 10, keep native one..
@@ -351,12 +360,12 @@ void WorkoutPlot::init(bool firstInit) {
 
 
         QFont fontBig;
-        fontBig.setPointSize(20);
+        fontBig.setPointSize(10);
         labelMsg->setFont(fontBig);
         labelMsgInterval->setFont(fontBig);
 
         QFont fontAlert;
-        fontAlert.setPointSize(12);
+        fontAlert.setPointSize(6);
         labelAlertMessage->setFont(fontAlert);
 
 
@@ -366,13 +375,13 @@ void WorkoutPlot::init(bool firstInit) {
         gridLayout->setMargin(0);
         gridLayout->setSpacing(0);
         gridLayout->setContentsMargins(0,0,0,0);
-        gridLayout->addWidget(spinBoxDifficulty, 0, 1, 1, 1, Qt::AlignRight | Qt::AlignTop);
+        //gridLayout->addWidget(spinBoxDifficulty, 0, 1, 1, 1, Qt::AlignRight | Qt::AlignTop);
         gridLayout->addWidget(labelAlertMessage, 0, 0, 0, 0, Qt::AlignLeft | Qt::AlignTop);
         gridLayout->addWidget(labelMsg, 0, 0, 2, 2);
         gridLayout->addWidget(labelMsgInterval, 0, 0, 2, 2, Qt::AlignBottom);
         widgetCanvas->setLayout(gridLayout);
 
-        spinBoxDifficulty->installEventFilter(this);
+        //spinBoxDifficulty->installEventFilter(this);
 //        this->installEventFilter(this);
 
         labelMsg->setAttribute(Qt::WA_TransparentForMouseEvents, true);
@@ -442,7 +451,7 @@ void WorkoutPlot::init(bool firstInit) {
 
 
     zoneDone = new ZoneItem( "Zone Done");
-    zoneDone->setColor( Util::getColor(Util::DONE) );
+    //zoneDone->setColor( Util::getColor(Util::DONE) );
     zoneDone->setInterval( 0, 0 );
     zoneDone->setVisible( true );
     zoneDone->attach( this );
@@ -454,7 +463,7 @@ void WorkoutPlot::init(bool firstInit) {
         drawGraphIntervals();
 
         zoneToDo = new ZoneItem( "Zone ToDo");
-        zoneToDo->setColor( Util::getColor(Util::NOT_DONE) );
+        //zoneToDo->setColor( Util::getColor(Util::NOT_DONE) );
         zoneToDo->setInterval( 0, Util::convertQTimeToSecD(workout.getDurationQTime()) );
         zoneToDo->setVisible( true );
         zoneToDo->attach( this );
@@ -462,7 +471,7 @@ void WorkoutPlot::init(bool firstInit) {
     else {
 
         zoneToDo = new ZoneItem( "Zone ToDo");
-        zoneToDo->setColor( Util::getColor(Util::NOT_DONE) );
+        //zoneToDo->setColor( Util::getColor(Util::NOT_DONE) );
         zoneToDo->setInterval( 0, 300 );
         zoneToDo->setVisible( true );
         zoneToDo->attach( this );

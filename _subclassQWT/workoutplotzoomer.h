@@ -34,10 +34,11 @@ public:
     {
         POWER,
         CADENCE,
-        HEART_RATE,
+        HEART_RATE
     };
+
     ~WorkoutPlotZoomer();
-    WorkoutPlotZoomer(QWidget *parent = 0);
+    WorkoutPlotZoomer(QWidget *parent = nullptr);
     void setWorkoutData(Workout workout, GRAPH_TYPE graph, bool firstInit);
     void setUserData(double FTP, double LTHR);
     void setStopped(bool b);
@@ -45,7 +46,11 @@ public:
     void addMarkerInterval(double time);
 
 
+    void setBackgroundColor(QColor *color);
 
+
+signals:
+    void diffTypeChanged(int diffLevel);
 
 
 public slots:
@@ -80,6 +85,8 @@ private:
 
     GRAPH_TYPE type;
     int extraAfterRange;
+
+    int diffLevel;
 
 
     MyQwtPlotPicker *d_picker;

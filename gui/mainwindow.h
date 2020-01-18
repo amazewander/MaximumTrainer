@@ -19,6 +19,8 @@
 #include "myconstants.h"
 #include "hub.h"
 
+#include "floatingworkout.h"
+
 
 namespace Ui {
 class MainWindow;
@@ -68,17 +70,10 @@ public slots:
     void loadConfigStudio();
     void saveConfigStudio();
     void updateVecStudio(QVector<UserStudio>);
-    void fillStudioPage();
-    void fillSettingPage();
-    void companyLoadedForUser(int riderID);
-    void setPowerCurveForUser(int riderID, int company_id, int trainer_id, QString companyName, QString trainerName,
-                              double coef0, double coef1, double coef2, double coef3, int formulaInCode);
     void disablePowerCurveForUser(int riderID);
     void updateFieldForUser(int riderID, int fieldNumber, QVariant value);
 
 
-
-    void updateZoneInterface();
     void leftMenuChanged(int tabSelected);
 
     void goToWorkoutPlanFilter(const QString& plan);
@@ -159,16 +154,33 @@ private slots:
 
     void on_actionImportCourse_triggered();
 
-    void createWebChannelPlan();
-    void createWebChannelZone();
-    void createWebChannelSettings();
-    void createWebChannelStudio();
-
     void on_pushButton_Cadence_search_clicked();
 
     void on_pushButton_Cadence_connect_clicked();
 
     void on_pushButton_sensor_decode_clicked();
+
+    void on_pushButton_test_clicked();
+
+    void on_pushButton_heartRate_search_clicked();
+
+    void on_pushButton_power_search_clicked();
+
+    void on_pushButton_trainer_search_clicked();
+
+    void on_pushButton_heartRate_connect_clicked();
+
+    void on_pushButton_power_connect_clicked();
+
+    void on_pushButton_trainer_connect_clicked();
+
+    void on_pushButton_trainer_delete_clicked();
+
+    void on_pushButton_power_delete_clicked();
+
+    void on_pushButton_heartrate_delete_clicked();
+
+    void on_pushButton_cadence_delete_clicked();
 
 private:
     void loadSettings();
@@ -181,6 +193,13 @@ private:
     void checkToEnableWindow();
     void startHub();
     void sendDataToSettingsOrStudioPage(int deviceType, int numberDeviceFound, QList<int> lstDevicePairedr, QList<int> lstTypeDevicePairedr, bool fromStudioPage);
+
+    void saveSensorSettings(Sensor *sensor);
+    void removeSensorSettings(Sensor *sensor);
+
+    void deleteSensor(Sensor *sensor);
+
+    void loadSensorList();
 
 private:
     QVector<UserStudio> vecUserStudio;
@@ -235,7 +254,7 @@ private:
     QNetworkReply *replySelfLoopsUpload;
 
 
-    Settings *settings;
+    //Settings *settings;
     Account *account;
     FancyTabBar *ftb;
 
@@ -248,6 +267,8 @@ private:
     ////////////////////////////Necar mod////////////////////////////
     bool isSensorStart;
     QList<Sensor> lstSensor;
+
+    FloatingWorkout *floatingWorkout;
 
 };
 

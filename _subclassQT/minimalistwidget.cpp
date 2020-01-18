@@ -35,15 +35,6 @@ void MinimalistWidget::setTarget(double percentageTarget, int range) {
 
 
 
-
-    if (percentageTarget < 0) {
-        ui->horizontalSlider->setVisible(false);
-    }
-    else {
-        ui->horizontalSlider->setVisible(true);
-    }
-
-
     int realTarget = percentageTarget;
     if (type == MinimalistWidget::POWER) {
         realTarget = qRound(percentageTarget * FTP);
@@ -75,21 +66,6 @@ void MinimalistWidget::setTarget(double percentageTarget, int range) {
 
     //    qDebug() << "Low :" << low << "high :" << high;
     //    qDebug() << "zMin_" << zMin_01 << "ZMax_" << zMax_01;
-
-
-
-    ui->horizontalSlider->setStyleSheet("QSlider::groove:horizontal { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, "
-                                        ///  0 to zMin
-                                        "stop:0.0 " + Util::getColor(Util::DONE).name() + ", stop:"+ QString::number(zMin_01 - 0.01) + " " +  Util::getColor(Util::DONE).name() +
-                                        /// zoneBeforeTarget
-                                        ", stop:" + QString::number(zMin_01) + " " +  colorSquare.name() + ", stop:" + QString::number(zTarget_01 - 0.01) + " " + colorSquare.name() +
-                                        /// Target line
-                                        ", stop:" + QString::number(zTarget_01) + " " +  Util::getColor(Util::LINE_ON_TARGET_GRAPH).name() + ", stop:" + QString::number(zTarget_01) + " " + Util::getColor(Util::LINE_ON_TARGET_GRAPH).name() +
-                                        /// zoneAfterTarget
-                                        ", stop:" + QString::number(zTarget_01 + 0.01) + " " +  colorSquare.name() + ", stop:" + QString::number(zMax_01) + " " + colorSquare.name() +
-                                        /// zMax to 1.0
-                                        ", stop:" + QString::number(zMax_01 + 0.01) + " " + Util::getColor(Util::DONE).name() + ", stop:1.0 " +   Util::getColor(Util::DONE).name()  + "); }");
-
 }
 
 
@@ -99,21 +75,14 @@ void MinimalistWidget::setTarget(double percentageTarget, int range) {
 void MinimalistWidget::setValue(int value) {
 
     if (target < 0) {
-        ui->horizontalSlider->setVisible(false);
-        ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::DONE).name() + "; }");
+        //ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::DONE).name() + "; }");
         ui->label_value->setText(QString::number(value));
         return;
-    }
-
-    if (ui->horizontalSlider->minimum() != 0 && ui->horizontalSlider->maximum() != 1000) {
-        ui->horizontalSlider->setMinimum(0);
-        ui->horizontalSlider->setMaximum(1000);
     }
 
 
     if(value < 0) {
         ui->label_value->setText("-");
-        ui->horizontalSlider->setValue(0);
         return;
     }
 
@@ -130,7 +99,6 @@ void MinimalistWidget::setValue(int value) {
 
 
     ui->label_value->setText(QString::number(value));
-    ui->horizontalSlider->setValue(value_0mille_i);
 
 
     /// Check Value is outside of zone, change color of QLabel
@@ -142,24 +110,24 @@ void MinimalistWidget::setValue(int value) {
     //    qDebug() << "zone Target?" << target;
     //    qDebug() << "diff is" << diff << "zoneRange is " << range;
 
-    if (isStopped || diffAbs <= range)
-    {
-        ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::DONE).name() + "; }");
-    }
-    else
-    {
-        /// Too Strong
-        if (diff > range) {
-            ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::TOO_HIGH).name() + "; }");
-            //            qDebug() << "SHOULD DRAW RED COLOR BG**************";
+//    if (isStopped || diffAbs <= range)
+//    {
+//        ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::DONE).name() + "; }");
+//    }
+//    else
+//    {
+//        /// Too Strong
+//        if (diff > range) {
+//            ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::TOO_HIGH).name() + "; }");
+//            //            qDebug() << "SHOULD DRAW RED COLOR BG**************";
 
-        }
-        /// Too Soft
-        else {
-            ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::TOO_LOW).name() + "; }");
-            //            qDebug() << "SHOULD DRAW BLUE COLOR BG**************";
-        }
-    }
+//        }
+//        /// Too Soft
+//        else {
+//            ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::TOO_LOW).name() + "; }");
+//            //            qDebug() << "SHOULD DRAW BLUE COLOR BG**************";
+//        }
+//    }
 
 
 
@@ -213,3 +181,7 @@ void MinimalistWidget::setTypeWidget(TypeMinimalist type) {
     }
 }
 
+
+void MinimalistWidget::setBackgroundColor(QColor *color){
+    ui->frame->setStyleSheet("QFrame#frame { background-color :"+ color->name(QColor::HexArgb) + "; }");
+}

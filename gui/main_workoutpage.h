@@ -68,7 +68,6 @@ public slots:
 
 private slots:
 
-    void connectWebChannelWorkout();
     void fillWorkoutPage();
 
 

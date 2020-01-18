@@ -1,11 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <string>
 #include <QDebug>
 #include <QSettings>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QDesktopWidget>
 #include <QApplication>
 #include <QFileDialog>
 
@@ -16,7 +18,7 @@
 #include "soundplayer.h"
 #include "dialoginfowebview.h"
 #include "dialogmainwindowconfig.h"
-#include "savingwindow.h"
+#include "floatingworkout.h"
 #include "workoutdialog.h"
 #include "workout.h"
 #include "radiodao.h"
@@ -24,13 +26,8 @@
 #include "reportutil.h"
 #include "importerworkout.h"
 #include "managerachievement.h"
+#include "sensor.h"
 
-#include <QWebEngineProfile>
-#include <QWebEngineScript>
-#include <QWebEnginePage>
-#include <QWebEngineScriptCollection>
-#include <QWebChannel>
-#include "myqwebenginepage.h"
 
 #include "extrequest.h"
 
@@ -65,24 +62,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->actionAbout_Qt->setIcon(QIcon(":/qt-project.org/qmessagebox/images/qtlogo-64.png"));
     ui->actionOpen_Ride->setEnabled(true);
 
-    this->settings = qApp->property("User_Settings").value<Settings*>();
+    //this->settings = qApp->property("User_Settings").value<Settings*>();
     this->account = qApp->property("Account").value<Account*>();
 
     zoneObject = new ZoneObject(this);         /// Used with QWebView zone page
     planObject = new PlanObject(this);         ///Used with QWebView Plan page
 
-
-    createWebChannelPlan();
-    createWebChannelZone();
-    createWebChannelSettings();
-    createWebChannelStudio();
-
-    ui->webView_zones->setUrl(QUrl(Environnement::getUrlZones()));
-    ui->webView_achiev->setUrl(QUrl(Environnement::getUrlAchievement()));
-    ui->webView_settings->setUrl(QUrl(Environnement::getUrlSettings()));
-    ui->webView_plan->setUrl(QUrl(Environnement::getUrlPlans()));
-    ui->webView_studio->setUrl(QUrl(Environnement::getUrlStudio()));
-    ui->webView_ergDb->setUrl(QUrl("https://www.ergdb.org/maximum-trainer/"));
+    //ui->webView_zones->setUrl(QUrl(Environnement::getUrlZones()));
+    //ui->webView_achiev->setUrl(QUrl(Environnement::getUrlAchievement()));
+    //ui->webView_settings->setUrl(QUrl(Environnement::getUrlSettings()));
+    //ui->webView_plan->setUrl(QUrl(Environnement::getUrlPlans()));
+    //ui->webView_studio->setUrl(QUrl(Environnement::getUrlStudio()));
+    //ui->webView_ergDb->setUrl(QUrl("https://www.ergdb.org/maximum-trainer/"));
 
 
 
@@ -126,8 +117,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     //Load userStudio xml file to VecUserStudio
-    XmlUtil *xmlUtil = new XmlUtil(settings->language, this);
-    vecUserStudio = xmlUtil->parseUserStudioFile("");
+    //XmlUtil *xmlUtil = new XmlUtil(settings->language, this);
+    //vecUserStudio = xmlUtil->parseUserStudioFile("");
 
 
     ManagerAchievement *achievementManager = new ManagerAchievement(this);
@@ -180,14 +171,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     //DialogConfig
-    dconfig = new DialogMainWindowConfig(this);
+    //dconfig = new DialogMainWindowConfig(this);
 
     //    dconfig->setModal(true);
-    connect(dconfig, SIGNAL(folderWorkoutChanged()), ui->tab_workout1, SLOT(refreshUserWorkout()) );
+    //connect(dconfig, SIGNAL(folderWorkoutChanged()), ui->tab_workout1, SLOT(refreshUserWorkout()) );
 
 
     leftMenuChanged(5);
-    enableStudioMode(account->enable_studio_mode);
+    enableStudioMode(false);
 
     qDebug() << "before get radio......";
 
@@ -202,15 +193,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(planObject, SIGNAL(signal_goToWorkout(QString)), this, SLOT(goToWorkoutPlanFilter(QString)) );
 
 
-    connect(ui->webView_settings, SIGNAL(loadFinished(bool)), this, SLOT(fillSettingPage()));
-    connect(ui->webView_studio, SIGNAL(loadFinished(bool)), this, SLOT(fillStudioPage()));
-
-    connect(ui->webView_ergDb->page()->profile(), SIGNAL(downloadRequested(QWebEngineDownloadItem*)),
-                    this, SLOT(downloadRequested(QWebEngineDownloadItem*)));
+    //connect(ui->webView_settings, SIGNAL(loadFinished(bool)), this, SLOT(fillSettingPage()));
+    //connect(ui->webView_studio, SIGNAL(loadFinished(bool)), this, SLOT(fillStudioPage()));
 
     //////////////Necar mod///////////////
-    isSensorStart = false;
+    isSensorStart = false;    
 
+    this->loadSensorList();
 }
 
 
@@ -456,183 +445,6 @@ void MainWindow::leftMenuChanged(int tabSelected) {
 
 
 
-//------------------------------------------------------------
-void MainWindow::createWebChannelZone() {
-
-    qDebug() << "createWebChannelZone";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var zoneObject"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     zoneObject = channel.objects.zoneObject;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_zones);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        ui->webView_zones->page()->scripts().insert(script);
-        ui->webView_zones->page()->setWebChannel(channel);
-        channel->registerObject("zoneObject", zoneObject);
-
-        // execute updateCdA() js function to init value
-        ui->webView_studio->page()->runJavaScript("updateCdA();");
-    }
-}
-
-
-//------------------------------------------------------------
-void MainWindow::createWebChannelPlan() {
-
-    qDebug() << "createWebChannelPlan";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var planObject"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     planObject = channel.objects.planObject;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_plan);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        // External links
-        QStringList lstExternal = {"forum", "cms" };
-        MyQWebEnginePage *myPage = new MyQWebEnginePage(ui->webView_plan);
-        myPage->setExternalList(lstExternal);
-        ui->webView_plan->setPage(myPage);
-
-        ui->webView_plan->page()->scripts().insert(script);
-        ui->webView_plan->page()->setWebChannel(channel);
-        channel->registerObject("planObject", planObject);
-    }
-}
-
-
-//------------------------------------------------------------
-void MainWindow::createWebChannelSettings() {
-
-    qDebug() << "createWebChannelSettings";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var MainWindow"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     MainWindow = channel.objects.MainWindow;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_settings);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        ui->webView_settings->page()->scripts().insert(script);
-        ui->webView_settings->page()->setWebChannel(channel);
-        channel->registerObject("MainWindow", this);
-    }
-}
-
-
-//------------------------------------------------------------
-void MainWindow::createWebChannelStudio() {
-
-    qDebug() << "createWebChannelStudio";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var MainWindow"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     MainWindow = channel.objects.MainWindow;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_studio);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        ui->webView_studio->page()->scripts().insert(script);
-        ui->webView_studio->page()->setWebChannel(channel);
-        channel->registerObject("MainWindow", this);
-
-    }
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::fillSettingPage()  {
-
-    qDebug() << "fillSettingPage -  Set the pmUseForCadence " << account->use_pm_for_cadence;
-
-    QString jsCode = QString("$('#switch-pm-cadence').bootstrapSwitch('state', %1);").arg(account->use_pm_for_cadence);
-    jsCode += QString("$('#switch-pm-speed').bootstrapSwitch('state', %1);").arg(account->use_pm_for_speed);
-
-    //using trainer curve?
-    if (account->powerCurve.getId() > 0) {
-        jsCode += QString("$('#power-data-source').trigger('change');");
-        jsCode += QString("$('#select-company').trigger('change');");
-    }
-
-    qDebug() << "jsCodeISL:" << jsCode;
-
-
-    ui->webView_settings->page()->runJavaScript(jsCode);
-}
 
 
 
@@ -642,125 +454,8 @@ void MainWindow::updateVecStudio(QVector<UserStudio> vecUserStudio) {
     qDebug() << "zzzzz MainWindow::updateVecStudio";
     this->vecUserStudio = vecUserStudio;
 
-    fillStudioPage();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::fillStudioPage() {
-
-    qDebug() << "fillStudioPage -  Set the Checkbox to " << account->enable_studio_mode;
-
-    QString jsCode = QString("$('#switch-enable-studio').bootstrapSwitch('state', %1);").arg(account->enable_studio_mode);
-    jsCode += QString("$('#select-number-workout').val(%1);").arg(account->nb_user_studio);
-    jsCode += "$('#select-number-workout').trigger('change');";
-
-
-    qDebug() << "JSTOEXECUTE IS:" << jsCode;
-    ui->webView_studio->page()->runJavaScript(jsCode);
-
-
-    //-- Populate QwebView Studio
-    QString jsToExecute = "";
-    for (int i=0; i<vecUserStudio.size(); i++) {
-
-        int userID = i+1;
-        UserStudio userStudio = vecUserStudio.at(i);
-
-        // UserStudio dummyUser("", -1, -1, -1, -1, -1, -1, -1, 2100, false, 0, 0);
-        jsToExecute += QString("$('#input-display-name_" +QString::number(userID)+ "').val('%1');").arg(userStudio.getDisplayName());
-        if (userStudio.getFTP() > 0)
-            jsToExecute += QString("$('#input-ftp_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getFTP());
-        if (userStudio.getLTHR() > 0)
-            jsToExecute += QString("$('#input-lthr_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getLTHR());
-        if (userStudio.getHrID() > 0)
-            jsToExecute += QString("$('#sensor-hr-id_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getHrID());
-        if (userStudio.getPowerID() > 0)
-            jsToExecute += QString("$('#sensor-power-id_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getPowerID());
-        if (userStudio.getCadenceID() > 0)
-            jsToExecute += QString("$('#sensor-cadence-id_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getCadenceID());
-        if (userStudio.getSpeedID() > 0)
-            jsToExecute += QString("$('#sensor-speed-id_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getSpeedID());
-        if (userStudio.getFecID() > 0)
-            jsToExecute += QString("$('#sensor-fec-id_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getFecID());
-        if (userStudio.getWheelCircMM() > 0)
-            jsToExecute += QString("$('#wheelcirc_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getWheelCircMM());
-        jsToExecute += QString("$('#switch-power-curve_" +QString::number(userID)+ "').bootstrapSwitch('state', %1);").arg(userStudio.getUsingPowerCurve());
-
-        if (userStudio.getUsingPowerCurve()) {
-            jsToExecute += QString("$('#select-company_" +QString::number(userID)+ "').val(%1);").arg(userStudio.getCompanyID());
-            jsToExecute += "$('#select-company_"  +QString::number(userID)+ "').selectpicker('refresh');";
-            jsToExecute += "$('#select-company_"  +QString::number(userID)+ "').trigger('change');";
-        }
-    }
-
-
-    qDebug() << "JSTOEXECUTE IS:" << jsToExecute;
-    ui->webView_studio->page()->runJavaScript(jsToExecute);
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::companyLoadedForUser(int riderID) {
-
-    if (riderID >= vecUserStudio.size())
-        return;
-
-    qDebug() << "companyLoadedForUser" << riderID;
-
-    UserStudio myUserStudio = vecUserStudio.at(riderID-1);
-
-    if (myUserStudio.getBrandID() > 0) {
-
-        qDebug() << "OK This one got a brand ID, send to QWebView brand id!";
-
-        QString jsToExecute = "";
-        jsToExecute += QString("$('#select-trainer_" +QString::number(riderID)+ "').val(%1);").arg(myUserStudio.getBrandID());
-        jsToExecute += "$('#select-trainer_"  +QString::number(riderID)+ "').selectpicker('refresh');";
-        jsToExecute += "$('#select-trainer_"  +QString::number(riderID)+ "').trigger('change');";
-        //        ui->webView_studio->page()->mainFrame()->documentElement().evaluateJavaScript(jsToExecute + "; null");
-        ui->webView_studio->page()->runJavaScript(jsToExecute);
-    }
-
-}
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::setPowerCurveForUser(int riderID, int company_id, int trainer_id, QString companyName, QString trainerName,
-                                      double coef0, double coef1, double coef2, double coef3, int formulaInCode) {
-
-    if (riderID >= vecUserStudio.size())
-        return;
-
-    UserStudio myUserStudio = vecUserStudio.at(riderID-1);
-
-    qDebug() << "setPowerCurveForUser" << "riderID" << riderID << "company_id" << company_id << "trainer_id" << trainer_id << "companyName" << companyName << "trainerName" << trainerName <<
-                "coef0" << coef0 << "coef1" << coef1 << "coef2" << coef2 << "coef3" << coef3 << "formulaInCode" << formulaInCode ;
-
-    myUserStudio.setUsingPowerCurve(true);
-    myUserStudio.setCompanyID(company_id);
-    myUserStudio.setBrandID(trainer_id);
-
-    PowerCurve myCurve = myUserStudio.getPowerCurve();
-    myCurve.setId(trainer_id);
-    myCurve.setName(companyName, trainerName);
-    myCurve.setCoefs(coef0, coef1, coef2, coef3);
-    myCurve.setFormulaInCode(formulaInCode);
-
-    myUserStudio.setPowerCurve(myCurve);
-    vecUserStudio.replace(riderID-1, myUserStudio);
-
-
-    //    UserStudio testUserStudio = vecUserStudio.at(riderID-1);
-    //    qDebug() << "PowerCurve for user 2 is now:" << testUserStudio.getPowerCurve().getFullName();
-
-    for (int i=0; i<vecUserStudio.size(); i++) {
-
-        UserStudio userStudio = vecUserStudio.at(i);
-        qDebug() << "User Studio power Curve is_WORKOUTDIALOG:" << userStudio.getPowerCurve().getFullName() << userStudio.getPowerCurve().getId() << "test att:" << userStudio.getDisplayName();
-    }
-
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainWindow::disablePowerCurveForUser(int riderID) {
@@ -881,9 +576,8 @@ void MainWindow::loadConfigStudio() {
 
 
     //Parse File and reset QWebView with QVector
-    XmlUtil *xmlUtil = new XmlUtil(this->settings->language, this);
-    vecUserStudio = xmlUtil->parseUserStudioFile(file);
-    fillStudioPage();
+    //XmlUtil *xmlUtil = new XmlUtil(this->settings->language, this);
+    //vecUserStudio = xmlUtil->parseUserStudioFile(file);
     ui->widget_bottomMenu->setGeneralMessage(QString(tr("Studio Profile %1 loaded")).arg(file), 5000);
 
 
@@ -925,18 +619,6 @@ void MainWindow::saveConfigStudio() {
     settings.endGroup();
 }
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::updateZoneInterface() {
-
-    qDebug() << "update zone interface!********************";
-
-    QString jsToExecute = QString("$('#FTP').val( '%1' ); ").arg((QString::number(account->FTP)));
-    jsToExecute += QString("$('#LTHR').val( '%1' ); ").arg((QString::number(account->LTHR)));
-    //    ui->webView_zones->page()->mainFrame()->documentElement().evaluateJavaScript(jsToExecute + "; null");
-    ui->webView_zones->page()->runJavaScript(jsToExecute);
-
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 void MainWindow::showWorkoutCreator() {
@@ -1082,11 +764,9 @@ void MainWindow::sendDataToSettingsOrStudioPage(int deviceType, int numberDevice
 
     if (fromStudioPage) {
         qDebug() << "send the script to studio page";
-        //ui->webView_studio->page()->runJavaScript(jsToRun);
     }
     else {
         qDebug() << "send the script to settings page";
-        //ui->webView_settings->page()->runJavaScript(jsToRun);
         ui->listWidget_cadence->clear();
         ui->listWidget_cadence->addItems(temp);
     }
@@ -1168,7 +848,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     //Save filter Field
     ui->tab_workout1->saveFilterFields();
 
-    Q_UNUSED(event);
+    Q_UNUSED(event)
     saveSettings();
     this->setVisible(false);
 
@@ -1359,7 +1039,7 @@ void MainWindow::on_actionOpen_Ride_triggered()
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::executeWorkout(Workout workout) {
+/*void MainWindow::executeWorkout(Workout workout) {
 
     //wait cursor
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -1385,7 +1065,7 @@ void MainWindow::executeWorkout(Workout workout) {
     workoutOver();
 
     ui->webView_achiev->reload();
-}
+}*/
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1760,12 +1440,10 @@ void MainWindow::searchSensor(int typeSensor, bool fromStudioPage) {
 
     if (numberStickFound == 0 && fromStudioPage) {
         qDebug() << "NO STICK STUDIO PAGE, Show alert";
-        //ui->webView_studio->page()->runJavaScript(jsCode);
         sendDataToSettingsOrStudioPage(typeSensor, 0, lstBidon, lstBidon, true);
     }
     else if (numberStickFound == 0) {
         qDebug() << "NO STICK SEttings PAGE, Show alert";
-        //ui->webView_settings->page()->runJavaScript(jsCode);
         sendDataToSettingsOrStudioPage(typeSensor, 0, lstBidon, lstBidon, false);
     }
     else {
@@ -1804,6 +1482,102 @@ void MainWindow::on_pushButton_Cadence_connect_clicked()
     Sensor* cadence = new Sensor(sensorId.toInt(), Sensor::SENSOR_TYPE::SENSOR_CADENCE, "", "");
     lstSensor.append(*cadence);
     ui->label_cadence_connected->setText(sensorId);
+    this->saveSensorSettings(cadence);
+}
+
+void MainWindow::saveSensorSettings(Sensor *sensor){
+    QSettings settings;
+    QString type;
+    switch(sensor->getDeviceType()){
+    case Sensor::SENSOR_HR:
+        type="heartrate";
+        break;
+    case Sensor::SENSOR_FEC:
+        type="trainer";
+        break;
+    case Sensor::SENSOR_POWER:
+        type="powermeter";
+        break;
+    case Sensor::SENSOR_CADENCE:
+        type="cadence";
+        break;
+    default: return;
+    }
+
+    settings.setValue("sensor/"+type, sensor->getAntId());
+}
+
+void MainWindow::removeSensorSettings(Sensor *sensor){
+    QSettings settings;
+    QString type;
+    switch(sensor->getDeviceType()){
+    case Sensor::SENSOR_HR:
+        type="heartrate";
+        break;
+    case Sensor::SENSOR_FEC:
+        type="trainer";
+        break;
+    case Sensor::SENSOR_POWER:
+        type="powermeter";
+        break;
+    case Sensor::SENSOR_CADENCE:
+        type="cadence";
+        break;
+    default: return;
+    }
+
+    settings.remove("sensor/"+type);
+}
+
+void MainWindow::deleteSensor(Sensor *sensor){
+    int i = 0;
+    for(; i<lstSensor.size(); i++){
+        if(lstSensor.at(i).getAntId() == sensor->getAntId()){
+            break;
+        }
+    }
+    if(i<lstSensor.size()){
+        lstSensor.removeAt(i);
+    }
+
+    this->removeSensorSettings(sensor);
+}
+
+void MainWindow::loadSensorList(){
+    QSettings settings;
+    settings.beginGroup("sensor");
+
+    QString key = "heartrate";
+    if(settings.contains(key)){
+        int sensorId = settings.value(key).toInt();
+        qDebug() << "heart rate sensor found! id : " << sensorId;
+        ui->label_heartRate_connected->setText(QString::number(sensorId));
+        lstSensor.append(Sensor(sensorId, Sensor::SENSOR_HR, "", ""));
+    }
+
+    key = "trainer";
+    if(settings.contains(key)){
+        int sensorId = settings.value(key).toInt();
+        qDebug() << "trainer sensor found! id : " << sensorId;
+        ui->label_trainer_connected->setText(QString::number(sensorId));
+        lstSensor.append(Sensor(sensorId, Sensor::SENSOR_FEC, "", ""));
+    }
+
+    key = "powermeter";
+    if(settings.contains(key)){
+        int sensorId = settings.value(key).toInt();
+        qDebug() << "power meter sensor found! id : " << sensorId;
+        ui->label_power_connected->setText(QString::number(sensorId));
+        lstSensor.append(Sensor(sensorId, Sensor::SENSOR_POWER, "", ""));
+    }
+
+    key = "cadence";
+    if(settings.contains(key)){
+        int sensorId = settings.value(key).toInt();
+        qDebug() << "cadence sensor found! id : " << sensorId;
+        ui->label_cadence_connected->setText(QString::number(sensorId));
+        lstSensor.append(Sensor(sensorId, Sensor::SENSOR_CADENCE, "", ""));
+    }
 }
 
 void MainWindow::on_pushButton_sensor_decode_clicked()
@@ -1830,4 +1604,100 @@ void MainWindow::cadenceDataReceived(int userID, int value){
         index--;
         value /= 10;
     }
+}
+
+void MainWindow::on_pushButton_test_clicked()
+{
+    on_actionOpen_Ride_triggered();
+}
+
+void MainWindow::executeWorkout(Workout workout) {
+
+    //wait cursor
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    //floatingWorkout->setModal(true);
+    floatingWorkout = new FloatingWorkout(vecHub, vecStickIdUsed, lstSensor, workout);
+
+    connect(floatingWorkout, SIGNAL(fitFileReady(QString, QString, QString)), this, SLOT(checkToUploadFile(QString,QString,QString)) );
+    //connect(floatingWorkout, SIGNAL(ftp_lthr_changed()), this, SLOT(updateZoneInterface()));
+    connect(floatingWorkout, SIGNAL(ftp_lthr_changed()), ui->tab_workout1, SLOT(updateTableViewMetrics()));
+
+
+    //connect(floatingWorkout, SIGNAL(ftpUserStudioChanged(QVector<UserStudio>)), this, SLOT(updateVecStudio(QVector<UserStudio>)) );
+
+
+    workoutExecuting();
+    floatingWorkout->show();
+    workoutOver();
+}
+
+void MainWindow::on_pushButton_heartRate_search_clicked()
+{
+    searchSensor(constants::hrDeviceType, false);
+}
+
+void MainWindow::on_pushButton_power_search_clicked()
+{
+    searchSensor(constants::powerDeviceType, false);
+}
+
+void MainWindow::on_pushButton_trainer_search_clicked()
+{
+    searchSensor(constants::fecDeviceType, false);
+}
+
+void MainWindow::on_pushButton_heartRate_connect_clicked()
+{
+    QString sensorId = ui->listWidget_heartRate->currentItem()->text();
+    Sensor* heartRate = new Sensor(sensorId.toInt(), Sensor::SENSOR_TYPE::SENSOR_HR, "", "");
+    lstSensor.append(*heartRate);
+    ui->label_heartRate_connected->setText(sensorId);
+    this->saveSensorSettings(heartRate);
+}
+
+void MainWindow::on_pushButton_power_connect_clicked()
+{
+    QString sensorId = ui->listWidget_Power->currentItem()->text();
+    Sensor* powermeter = new Sensor(sensorId.toInt(), Sensor::SENSOR_TYPE::SENSOR_POWER, "", "");
+    lstSensor.append(*powermeter);
+    ui->label_power_connected->setText(sensorId);
+    this->saveSensorSettings(powermeter);
+}
+
+void MainWindow::on_pushButton_trainer_connect_clicked()
+{
+    QString sensorId = ui->listWidget_trainer->currentItem()->text();
+    Sensor* trainer = new Sensor(sensorId.toInt(), Sensor::SENSOR_TYPE::SENSOR_FEC, "", "");
+    lstSensor.append(*trainer);
+    ui->label_trainer_connected->setText(sensorId);
+    this->saveSensorSettings(trainer);
+}
+
+void MainWindow::on_pushButton_trainer_delete_clicked()
+{
+    Sensor* trainer = new Sensor(ui->label_trainer_connected->text().toInt(), Sensor::SENSOR_TYPE::SENSOR_FEC, "", "");
+    ui->label_trainer_connected->setText("");
+    deleteSensor(trainer);
+}
+
+void MainWindow::on_pushButton_power_delete_clicked()
+{
+    Sensor* powermeter = new Sensor(ui->label_power_connected->text().toInt(), Sensor::SENSOR_TYPE::SENSOR_POWER, "", "");
+    ui->label_power_connected->setText("");
+    deleteSensor(powermeter);
+}
+
+void MainWindow::on_pushButton_heartrate_delete_clicked()
+{
+    Sensor* heartRate = new Sensor(ui->label_heartRate_connected->text().toInt(), Sensor::SENSOR_TYPE::SENSOR_HR, "", "");
+    ui->label_heartRate_connected->setText("");
+    deleteSensor(heartRate);
+}
+
+void MainWindow::on_pushButton_cadence_delete_clicked()
+{
+    Sensor* cadence = new Sensor(ui->label_cadence_connected->text().toInt(), Sensor::SENSOR_TYPE::SENSOR_CADENCE, "", "");
+    ui->label_cadence_connected->setText("");
+    deleteSensor(cadence);
 }

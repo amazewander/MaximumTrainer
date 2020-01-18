@@ -16,14 +16,6 @@
 #include "environnement.h"
 
 
-#include <QWebEngineView>
-#include <QWebEngineProfile>
-#include <QWebEngineScript>
-#include <QWebEnginePage>
-#include <QWebEngineScriptCollection>
-#include <QWebChannel>
-
-
 
 WorkoutCreator::~WorkoutCreator()
 {
@@ -41,7 +33,6 @@ WorkoutCreator::WorkoutCreator(QWidget *parent) : QWidget(parent), ui(new Ui::Wo
     this->account = qApp->property("Account").value<Account*>();
 
 
-    connectWebChannelWorkoutCreator();
     ui->webView_createWorkout->setUrl(QUrl(Environnement::getUrlWorkoutCreator()));
     /// ----------------------------------------------------
 
@@ -161,47 +152,6 @@ WorkoutCreator::WorkoutCreator(QWidget *parent) : QWidget(parent), ui(new Ui::Wo
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-void WorkoutCreator::connectWebChannelWorkoutCreator() {
-
-    qDebug() << "connectWebChannelWorkoutCreator";
-
-    QFile webChannelJsFile(":/qtwebchannel/qwebchannel.js");
-    if(  !webChannelJsFile.open(QIODevice::ReadOnly) ) {
-        qDebug() << QString("Couldn't open qwebchannel.js file: %1").arg(webChannelJsFile.errorString());
-    }
-    else {
-        qDebug() << "OK webEngineProfile";
-        QByteArray webChannelJs = webChannelJsFile.readAll();
-        webChannelJs.append(
-                    "\n"
-                    "var WorkoutCreator"
-                    "\n"
-                    "new QWebChannel(qt.webChannelTransport, function(channel) {"
-                    "     WorkoutCreator = channel.objects.WorkoutCreator;"
-                    "});"
-                    "\n"
-                    );
-
-        QWebChannel *channel = new QWebChannel(ui->webView_createWorkout);
-        QWebEngineScript script;
-        script.setSourceCode(webChannelJs);
-        script.setName("qwebchannel.js");
-        script.setWorldId(QWebEngineScript::MainWorld);
-        script.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        script.setRunsOnSubFrames(false);
-
-        ui->webView_createWorkout->page()->scripts().insert(script);
-        ui->webView_createWorkout->page()->setWebChannel(channel);
-        channel->registerObject("WorkoutCreator", this);
-    }
-
-
-}
-
-
-
-
 //------------------------------------------------------------------------------------------------
 void WorkoutCreator::rightClickedGraph(QPointF pos) {
 
@@ -236,8 +186,6 @@ void WorkoutCreator::resetWorkout() {
     qDeleteAll(lstRepeatWidget);
     lstRepeatWidget.clear();
     lstRepeatData.clear();
-
-    fillWorkoutCreatorPageWeb("", "-", account->display_name, 0, "");
 
     computeWorkout();
 
@@ -323,38 +271,7 @@ void WorkoutCreator::editWorkout(Workout workoutToEdit) {
     intervalModel->setListInterval(workoutToEdit.getLstIntervalSource());
     restoreRepeatWidgetInterface();
 
-    fillWorkoutCreatorPageWeb(workout.getName(), workout.getPlan(), workout.getCreatedBy(), workout.getType(), workout.getDescription());
     checkToEnableButtonSave();
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-void WorkoutCreator::fillWorkoutCreatorPageWeb(QString name, QString plan, QString creator, int type, QString description) {
-
-    qDebug() << "fillWorkoutCreatorPageWeb";
-
-    //Parse for Quotes, Javascript doesnt like them so escape them
-    QString planEscaped = plan.replace("\'", "\\'");
-    QString creatorEscaped = creator.replace("\'", "\\'");
-    QString descriptionEscaped = description.replace("\'", "\\'");
-    descriptionEscaped = descriptionEscaped.replace("\n", "\\n");
-
-
-    //// ----------- Set Data in QWebView : have to put null at the end of evaluate javascript or it's really slow
-    /// source : http://stackoverflow.com/questions/19505063/qt-javascript-execution-slow-unless-i-log-to-the-console
-    QString jsToExecute = QString("$('#name-workout').val( '%1' ); ").arg(name);
-    jsToExecute += QString("$('#plan-workout').val( '%1' ); ").arg(planEscaped);
-    jsToExecute += QString("$('#creator-workout').val( '%1' ); ").arg(creatorEscaped);
-    jsToExecute += QString("$('#description-workout').val( '%1' ); ").arg(descriptionEscaped);
-
-    jsToExecute += QString("$('#select-type-workout').val( %1 );").arg(type);
-    jsToExecute += "$('#select-type-workout').selectpicker('refresh');";
-    //    ui->webView_createWorkout->page()->mainFrame()->documentElement().evaluateJavaScript(jsToExecute + "; null");
-
-    ui->webView_createWorkout->page()->runJavaScript(jsToExecute);
-
-
 }
 
 
@@ -369,22 +286,6 @@ void WorkoutCreator::checkToEnableButtonSave() {
     if (intervalModel->rowCount() == 0) {
         enabled = false;
     }
-
-
-    QString jsToRun = "var nameValue = $('#name-workout').val();"
-                      "var planValue =   $('#plan-workout').val();"
-                      "var creatorValue = $('#creator-workout').val();"
-                      "if (nameValue.length > 0 && creatorValue.length > 0 && planValue.length > 0 && " + QString::number(enabled) +") {"
-                      "$('#btn-save-workout').prop('disabled', false);"
-                      "}"
-                      "else {"
-                      "$('#btn-save-workout').prop('disabled', true);"
-                      "}";
-
-//    qDebug() << "ok button check JS is " << jsToRun;
-
-
-    ui->webView_createWorkout->page()->runJavaScript(jsToRun);
 
 }
 

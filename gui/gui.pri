@@ -2,6 +2,7 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 SOURCES += gui/mainwindow.cpp\
+    $$PWD/floatingworkout.cpp \
 gui/workoutdialog.cpp \
     gui/main_workoutpage.cpp \
     gui/dialogconfig.cpp \
@@ -14,6 +15,7 @@ gui/workoutdialog.cpp \
     #$$PWD/main_coursepage.cpp
 
 HEADERS += gui/mainwindow.h\
+    $$PWD/floatingworkout.h \
 gui/workoutdialog.h \
     gui/main_workoutpage.h \
     gui/dialogconfig.h \
@@ -26,6 +28,7 @@ gui/workoutdialog.h \
     #$$PWD/main_coursepage.h
 
 FORMS    += gui/mainwindow.ui \
+    $$PWD/floatingworkout.ui \
     gui/workoutdialog.ui \
     gui/main_workoutpage.ui \
     gui/dialogconfig.ui \

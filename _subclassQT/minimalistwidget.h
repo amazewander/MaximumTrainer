@@ -28,6 +28,8 @@ public:
     void setUserData(double FTP, double LTHR);
     void setStopped(bool b);
 
+    void setBackgroundColor(QColor *color);
+
 
 
 

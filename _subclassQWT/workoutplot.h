@@ -68,6 +68,8 @@ public:
 
     bool eventFilter(QObject *watched, QEvent *event);
 
+    void setBackgroundColor(QColor *color);
+
 
 
 signals:

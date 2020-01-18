@@ -28,9 +28,11 @@ GlobalVars::GlobalVars(QObject *parent) :
 
     qDebug() << "SSL version" << QSslSocket::sslLibraryBuildVersionString();
 
-    QCoreApplication::setOrganizationName("Max++ inc.");
-    QCoreApplication::setOrganizationDomain("maximumtrainer.com");
-    QCoreApplication::setApplicationName("MaximumTrainer");
+    QCoreApplication::setOrganizationName("Amazewander inc.");
+    QCoreApplication::setOrganizationDomain("amazewander.com");
+    QCoreApplication::setApplicationName("SimplicityTrainer");
+
+    QSettings::setDefaultFormat(QSettings::IniFormat);
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
