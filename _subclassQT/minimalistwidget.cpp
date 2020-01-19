@@ -76,7 +76,7 @@ void MinimalistWidget::setValue(int value) {
 
     if (target < 0) {
         //ui->frame->setStyleSheet("QFrame#frame { background-color :"+ Util::getColor(Util::DONE).name() + "; }");
-        ui->label_value->setText(QString::number(value));
+        ui->label_value->setText(value < 0 ? "-" : QString::number(value));
         return;
     }
 

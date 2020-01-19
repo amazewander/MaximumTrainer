@@ -16,7 +16,7 @@
 
 FloatingWorkout::~FloatingWorkout() {
 
-    qDebug() << "WorkoutDialog destructor!----------";
+    qDebug() << "Floating Workout Dialog destructor!----------";
 
     emit stopDecodingMsgHub();
 
@@ -43,7 +43,7 @@ FloatingWorkout::~FloatingWorkout() {
     DataHeartRate::instance().clearData();
     DataSpeed::instance().clearData();
 
-    qDebug() << "----Destructor over WorkoutDialog";
+    qDebug() << "----Destructor over Floating Workout Dialog";
 }
 
 
@@ -59,6 +59,7 @@ FloatingWorkout::FloatingWorkout(QVector<Hub*> paraVecHub, QVector<int> paraVecS
     setAttribute(Qt::WA_NoSystemBackground);
     setAttribute(Qt::WA_TranslucentBackground);
     setAttribute(Qt::WA_PaintOnScreen);
+    setAttribute(Qt::WA_DeleteOnClose);
 
     int plotWidth = dialogWidth - 22;
     ui->widget_workoutPlot->setFixedWidth(plotWidth);
@@ -459,6 +460,8 @@ FloatingWorkout::FloatingWorkout(QVector<Hub*> paraVecHub, QVector<int> paraVecS
     //ui->wid_2_workoutPlot_PowerZoom->setVisible(false);
     //ui->widget_workoutPlot->setVisible(false);
 
+    ui->button_close->hide();
+
     hrOpacityEffect = new QGraphicsOpacityEffect(ui->wid_1_minimalistHr);
     hrOpacityEffect->setObjectName("hrOpacityEffect");
     hrOpacityEffect->setOpacity(1);
@@ -533,6 +536,7 @@ FloatingWorkout::FloatingWorkout(QVector<Hub*> paraVecHub, QVector<int> paraVecS
     //ui->label_close->hide();
 
     this->setMouseTracking(true);
+
 
     this->slotGetSensorListFinished(lstSensor);
 }
@@ -1301,7 +1305,7 @@ void FloatingWorkout::HrDataReceived(int userID, int value) {
 
     // invalid value, show "-" to the user
     if (value == -1) {
-        ui->wid_1_minimalistHr->setValue(value);
+        //ui->wid_1_minimalistHr->setValue(value);
         return;
     }
     if (value < 0)
@@ -1350,7 +1354,7 @@ void FloatingWorkout::CadenceDataReceived(int userID, int value) {
 
     // invalid value, show "-" to the user
     if (value == -1 || value > 250) {
-        ui->wid_3_minimalistCadence->setValue(value);
+        //ui->wid_3_minimalistCadence->setValue(value);
         return;
     }
     if (value < 0)
@@ -2138,11 +2142,11 @@ void FloatingWorkout::sureYouWantToQuit() {
                 changeIntervalsDataWorkout(lastIntervalEndTime_msec, timeElapsed_sec, intervalPausedTime_msec, true, false);
                 closeFitFiles(timeElapsed_sec);
             }
-            QDialog::accept();
+            QDialog::done(1);
         }
         else if (reply == QMessageBox::No) {
             closeAndDeleteFitFile();
-            QDialog::accept();
+            QDialog::done(1);
         }
         else {
             qDebug() << "Cancel was clicked";
@@ -2151,7 +2155,7 @@ void FloatingWorkout::sureYouWantToQuit() {
     }
     /// Not started or workout completed, no warning to show
     else {
-        QDialog::accept();
+        QDialog::done(1);
     }
 
 }
@@ -2471,7 +2475,8 @@ void FloatingWorkout::showNormalWin() {
 
 
 void FloatingWorkout::changeWidget(){
-    if(hrOpacityEffect->opacity() == 0.0){
+    //if(hrOpacityEffect->opacity() == 0.0){
+    if(ui->wid_1_minimalistHr->isHidden()){
         toggleWidget(ui->wid_3_minimalistCadence, hrCadAnimation, cadOpacityEffect, false);
     }else{
         toggleWidget(ui->wid_1_minimalistHr, hrCadAnimation, hrOpacityEffect, false);
@@ -2517,19 +2522,19 @@ void FloatingWorkout::hrCadAnimationFinished(){
 }
 
 void FloatingWorkout::fakeData() {
-    int value = (qrand() % ((150 + 1) - 130) + 130);
-    HrDataReceived(1, value);
+    //int value = (qrand() % ((150 + 1) - 130) + 130);
+    //HrDataReceived(1, value);
     //value = (qrand() % ((75 + 1) - 60) + 60);
     //CadenceDataReceived(1, value);
 
-    qint64 current = QDateTime::currentSecsSinceEpoch();
-    if(current > lastFakeChangeTime + 1){
-        originFakePower += 20;
-        lastFakeChangeTime = current;
-    }
+//    qint64 current = QDateTime::currentSecsSinceEpoch();
+//    if(current > lastFakeChangeTime + 1){
+//        originFakePower += 20;
+//        lastFakeChangeTime = current;
+//    }
 
-    value = qrand() % 10 + originFakePower;
-    PowerDataReceived(1, value);
+//    value = qrand() % 10 + originFakePower;
+//    PowerDataReceived(1, value);
 
 }
 

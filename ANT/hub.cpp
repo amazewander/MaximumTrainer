@@ -1766,6 +1766,12 @@ void Hub::ProcessMessage(ANT_MESSAGE stMessage, USHORT usSize_)
             }
             else if (decodeMsgNow) {
                 int userID = hashSensorSpeedCad.value(usDeviceNumber);
+                if(userID <= 0){
+                    userID = hashSensorCad.value(usDeviceNumber);
+                    if(userID <= 0){
+                        userID = hashSensorSpeed.value(usDeviceNumber);
+                    }
+                }
                 if (userID > 0) {
                     vecSpeedCadController.at(userID-1)->decodeSpeedCadenceMessage(stMessage);
                 }

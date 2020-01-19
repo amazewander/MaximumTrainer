@@ -16,11 +16,9 @@ else: DEFINES += QT_NO_UITOOLS
 #CONFIG += console
 #CONFIG += qwt qt thread
 #CONFIG += release
-CONFIG += debug
+#CONFIG += debug
 CONFIG += c++11
 
-# For Release, disable QDebug for performance
-#DEFINES += QT_NO_DEBUG_OUTPUT
 
 
 
@@ -48,15 +46,25 @@ win32 {
 
     #--------- SFML
     LIBS += -LF:/Workspaces/Qt/SFML/lib
+    LIBS += -lsfml-audio -lsfml-system
 
-    CONFIG(release, release): LIBS += -lsfml-audio -lsfml-system
+    CONFIG(release, debug|release){
+        LIBS += -LF:\Workspaces\Qt\build-qwt-Desktop_Qt_5_14_0_MSVC2017_64bit-Release\lib
+        LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Release" -lANT_LIB
+
+        # For Release, disable QDebug for performance
+        DEFINES += QT_NO_DEBUG_OUTPUT
+    }
+    CONFIG(debug, debug|release){
+        LIBS += -LF:\Workspaces\Qt\build-qwt-Desktop_Qt_5_14_0_MSVC2017_64bit-Debug\lib
+        LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Debug" -lANT_LIB
+    }
 
     INCLUDEPATH += F:/Workspaces/Qt/SFML/include
     DEPENDPATH += F:/Workspaces/Qt/SFML/include
 
 
     #--------- QWT
-    LIBS += -LF:\Workspaces\Qt\build-qwt-Desktop_Qt_5_14_0_MSVC2017_64bit-Debug\lib
     INCLUDEPATH += F:/Workspaces/Qt/qwt-6.1.3/src
     include ( F:/Workspaces/Qt/qwt-6.1.3/qwt.prf )
 
@@ -73,8 +81,6 @@ win32 {
     INCLUDEPATH += F:\Workspaces\Qt\ANT-SDK_PC.3.5\ANT_LIB\software\USB\device_handles
     INCLUDEPATH += F:\Workspaces\Qt\ANT-SDK_PC.3.5\ANT_LIB\software\USB\devices
 
-    LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Debug" -lANT_LIB
-    #LIBS +=  -L"F:\Workspaces\Qt\ANT-SDK_PC.3.5\x64\Release" -lANT_LIB
 
 }
 #////////////////////////////////////////////////////////////////////////////////////////////////////////

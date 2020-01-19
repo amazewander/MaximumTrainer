@@ -253,7 +253,6 @@ void MainWindow::startHub() {
     //////////////////////////////
     /// necar mod
     ///
-    lstSensor.clear();
     connect(this, SIGNAL(sendSoloData(PowerCurve,int, QList<Sensor>, bool, bool)), hub, SLOT(setSoloDataToHub(PowerCurve,int, QList<Sensor>, bool, bool)) );
 
     connect(hub, SIGNAL(signal_cadence(int, int)), this, SLOT(cadenceDataReceived(int, int)));
@@ -371,28 +370,28 @@ void MainWindow::goToWorkoutNameFilter() {
 /////////////////////////////////////////////////////////////////////////////////
 void MainWindow::workoutExecuting() {
 
-    this->setDisabled(true);
+    //this->setDisabled(true);
     isInsideWorkout = true;
     qDebug() << "WORKOUT EXECUTING************";
 
 
-    for (int i=0; i<ftb->getNumberOfTabs(); i++)
-        ftb->setTabEnabled(i, false);
+    //for (int i=0; i<ftb->getNumberOfTabs(); i++)
+    //    ftb->setTabEnabled(i, false);
 
 }
 /////////////////////////////////////////////////////////////////////
 void MainWindow::workoutOver() {
 
-    this->setDisabled(false);
+    //this->setDisabled(false);
     isInsideWorkout = false;
     qDebug() << "WORKOUT DONE************";
 
-    for (int i=0; i<ftb->getNumberOfTabs(); i++)
-        ftb->setTabEnabled(i, true);
+    //for (int i=0; i<ftb->getNumberOfTabs(); i++)
+    //    ftb->setTabEnabled(i, true);
 
-    if (account->enable_studio_mode) {
-        enableStudioMode(true);
-    }
+    //if (account->enable_studio_mode) {
+    //    enableStudioMode(true);
+    //}
 
 }
 
@@ -767,8 +766,25 @@ void MainWindow::sendDataToSettingsOrStudioPage(int deviceType, int numberDevice
     }
     else {
         qDebug() << "send the script to settings page";
-        ui->listWidget_cadence->clear();
-        ui->listWidget_cadence->addItems(temp);
+        switch(deviceType){
+        case constants::cadDeviceType:
+            ui->listWidget_cadence->clear();
+            ui->listWidget_cadence->addItems(temp);
+            break;
+        case constants::hrDeviceType:
+            ui->listWidget_heartRate->clear();
+            ui->listWidget_heartRate->addItems(temp);
+            break;
+        case constants::powerDeviceType:
+            ui->listWidget_Power->clear();
+            ui->listWidget_Power->addItems(temp);
+            break;
+        case constants::fecDeviceType:
+            ui->listWidget_trainer->clear();
+            ui->listWidget_trainer->addItems(temp);
+            break;
+        }
+
     }
 
 }
@@ -859,9 +875,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 
     // Put updated account data to server
-    replySaveAccount = UserDAO::putAccount(account);
-    QObject::connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
-    loop.exec(); //dont leave until data uploaded to server
+//    replySaveAccount = UserDAO::putAccount(account);
+//    QObject::connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
+//    loop.exec(); //dont leave until data uploaded to server
 
 
     //Wait for hub to close
@@ -1623,13 +1639,13 @@ void MainWindow::executeWorkout(Workout workout) {
     //connect(floatingWorkout, SIGNAL(ftp_lthr_changed()), this, SLOT(updateZoneInterface()));
     connect(floatingWorkout, SIGNAL(ftp_lthr_changed()), ui->tab_workout1, SLOT(updateTableViewMetrics()));
 
+    connect(floatingWorkout, SIGNAL(finished(int)), this, SLOT(workoutOver()));
 
     //connect(floatingWorkout, SIGNAL(ftpUserStudioChanged(QVector<UserStudio>)), this, SLOT(updateVecStudio(QVector<UserStudio>)) );
 
 
     workoutExecuting();
     floatingWorkout->show();
-    workoutOver();
 }
 
 void MainWindow::on_pushButton_heartRate_search_clicked()

@@ -595,31 +595,30 @@ void WorkoutPlotZoomer::updateCurve(double timeNow, int value) {
     else {
         if (target < 0) {  /// no target
             //canvas()->setStyleSheet(" QwtPlotCanvas { background-color: rgb(35, 35, 35); }");
-        }
-
-        if ( ((diff <= targetRange) && (diff >= (-targetRange))) && this->diffLevel != 0) {
-            this->diffLevel = 0;
-            emit(diffTypeChanged(this->diffLevel));
-        }
-        else {
-            int level;
-            if(diff > targetRange){
-                level = (diff - targetRange) / 10 + 1;
-                if(level > 5){
-                    level = 5;
-                }
-            }else {
-                level = (diff + targetRange) / 10 - 1;
-                if(level < -5){
-                    level = -5;
-                }
-            }
-            if(this->diffLevel != level){
-                this->diffLevel = level;
+        }else{
+            if ( ((diff <= targetRange) && (diff >= (-targetRange))) && this->diffLevel != 0) {
+                this->diffLevel = 0;
                 emit(diffTypeChanged(this->diffLevel));
             }
+            else {
+                int level;
+                if(diff > targetRange){
+                    level = (diff - targetRange) / 10 + 1;
+                    if(level > 5){
+                        level = 5;
+                    }
+                }else {
+                    level = (diff + targetRange) / 10 - 1;
+                    if(level < -5){
+                        level = -5;
+                    }
+                }
+                if(this->diffLevel != level){
+                    this->diffLevel = level;
+                    emit(diffTypeChanged(this->diffLevel));
+                }
+            }
         }
-
     }
 }
 

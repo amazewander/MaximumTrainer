@@ -739,7 +739,7 @@ QString Util::getSystemPathHelperReturnDefaultLoc(QString docType) {
 
     ///---
     QString writableLocation = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-    QString appFolderWorkout = writableLocation + QDir::separator() + "MaximumTrainer" + QDir::separator() + folderName;
+    QString appFolderWorkout = writableLocation + QDir::separator() + "SimplicityTrainer" + QDir::separator() + folderName;
 
     QDir dir(appFolderWorkout);
     bool status = Util::checkFolderPathIsValidForWrite(dir.absolutePath() );
