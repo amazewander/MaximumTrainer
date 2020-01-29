@@ -102,11 +102,11 @@ void myCreatorPlot::updateWorkout(Workout workout) {
 void myCreatorPlot::ajustScales() {
 
 
-    max_power = workout.getMaxPowerPourcent() * account->FTP;
+    max_power = workout.getMaxPowerPourcent() * account->getFTP();
     if (max_power < 200)
         max_power = 200;
-    if (max_power < account->FTP)
-        max_power = account->FTP;
+    if (max_power < account->getFTP())
+        max_power = account->getFTP();
 
     setAxisScale( QwtPlot::yLeft, 0.0, max_power+50, 50);
 
@@ -323,8 +323,8 @@ void myCreatorPlot::drawGraphIntervals() {
 
 
 
-    int ftp = account->FTP;
-    int lthr = account->LTHR;
+    int ftp = account->getFTP();
+    int lthr = account->getLTHR();
     int maxPower = workout.getMaxPowerPourcent() * ftp + 200;
     double time = 0;
     int i=0;

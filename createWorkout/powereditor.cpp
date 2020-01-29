@@ -148,7 +148,7 @@ void PowerEditor::on_comboBox_FTPorWatts_currentIndexChanged(int index)
 void PowerEditor::on_spinBox_ftpStart_valueChanged(double arg1)
 {
     // Convert to FTP value
-    int ftp = account->FTP;
+    int ftp = account->getFTP();
     if (editingInWatts) {
         myInterval.setTargetFTP_start(arg1/ftp);
     }
@@ -162,7 +162,7 @@ void PowerEditor::on_spinBox_ftpStart_valueChanged(double arg1)
 void PowerEditor::on_spinBox_ftpEnd_valueChanged(double arg1)
 {
     // Convert to FTP value
-    int ftp = account->FTP;
+    int ftp = account->getFTP();
     if (editingInWatts) {
         double ftpEnd = ((double)arg1)/ftp;
         myInterval.setTargetFTP_end(ftpEnd);

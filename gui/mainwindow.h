@@ -7,7 +7,6 @@
 #include <QWebEngineView>
 #include <QThread>
 
-#include "zoneobject.h"
 #include "planobject.h"
 #include "fancytabbar.h"
 #include "radio.h"
@@ -111,7 +110,7 @@ public slots:
     void checkToUploadFile(const QString& filename, const QString& nameOnly, const QString& description);
 
     //tempo
-    void postDataAccountFinished();
+    //void postDataAccountFinished();
 
     //////////////////////////
     /// necar mod
@@ -182,6 +181,18 @@ private slots:
 
     void on_pushButton_cadence_delete_clicked();
 
+    void on_lineEdit_height_editingFinished();
+
+    void on_lineEdit_weight_editingFinished();
+
+    void on_lineEdit_ftp_editingFinished();
+
+    void on_lineEdit_lthr_editingFinished();
+
+    void on_checkBox_trainerResistence_stateChanged(int arg1);
+
+    void on_comboBox_user_currentIndexChanged(const QString &arg1);
+
 private:
     void loadSettings();
     void saveSettings();
@@ -200,6 +211,7 @@ private:
     void deleteSensor(Sensor *sensor);
 
     void loadSensorList();
+    void loadUserData();
 
 private:
     QVector<UserStudio> vecUserStudio;
@@ -231,7 +243,6 @@ private:
     QNetworkReply *replyRadio;
     QList<Radio> lstRadio;
 
-    ZoneObject *zoneObject;
     PlanObject *planObject;
 
     QEventLoop loop;

@@ -65,7 +65,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //this->settings = qApp->property("User_Settings").value<Settings*>();
     this->account = qApp->property("Account").value<Account*>();
 
-    zoneObject = new ZoneObject(this);         /// Used with QWebView zone page
     planObject = new PlanObject(this);         ///Used with QWebView Plan page
 
     //ui->webView_zones->setUrl(QUrl(Environnement::getUrlZones()));
@@ -93,22 +92,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ftb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
     ftb->insertTab(0, QIcon(":/image/icon/workoutMan"), tr("Workout"));
-    ftb->insertTab(1, QIcon(":/image/icon/images/ergdb-logo-black-rider.png"), tr("Find Workouts"));
-    ftb->insertTab(2, QIcon(":/image/icon/calendar"),  tr("Plan"));
-    ftb->insertTab(3, QIcon(":/image/icon/studio"), tr("Studio"));
-    ftb->insertTab(4, QIcon(":/image/icon/user"), tr("Profile"));
-    ftb->insertTab(5, QIcon(":/image/icon/antmenu"), "ANT+");
+    //ftb->insertTab(1, QIcon(":/image/icon/images/ergdb-logo-black-rider.png"), tr("Find Workouts"));
+    //ftb->insertTab(2, QIcon(":/image/icon/calendar"),  tr("Plan"));
+    //ftb->insertTab(3, QIcon(":/image/icon/studio"), tr("Studio"));
+    ftb->insertTab(1, QIcon(":/image/icon/user"), tr("Profile"));
+    ftb->insertTab(2, QIcon(":/image/icon/antmenu"), "ANT+");
 
     ftb->setTabEnabled(0, true);
     ftb->setTabEnabled(1, true);
     ftb->setTabEnabled(2, true);
-    ftb->setTabEnabled(3, true);
-    ftb->setTabEnabled(4, true);
-    ftb->setTabEnabled(5, true);
+    //ftb->setTabEnabled(3, true);
+    //ftb->setTabEnabled(4, true);
+    //ftb->setTabEnabled(5, true);
 
 
 
-    ftb->setCurrentIndex(5);
+    ftb->setCurrentIndex(2);
     connect(ftb, SIGNAL(currentChanged(int)), this, SLOT(leftMenuChanged(int)) );
 
 
@@ -128,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     //Parse Workouts
     ui->tab_workout1->parseIncludedWorkouts();
-    ui->tab_workout1->parseMapWorkout(account->FTP);
+    ui->tab_workout1->parseMapWorkout(account->getFTP());
     ui->tab_workout1->parseUserWorkouts();
 
 
@@ -156,8 +155,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     /// Update create workout graph on FTP and LTHR change
-    connect(zoneObject, SIGNAL(signal_updateFTP()), this, SLOT(setFlagFtpChanged()) );
-    connect(zoneObject, SIGNAL(signal_updateLTHR()), this, SLOT(setFlagFtpChanged()) );
     connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_create, SLOT(computeWorkout()) );
     ///Also update workout metrics based on FTP
     connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_workout1, SLOT(updateTableViewMetrics()) );
@@ -177,7 +174,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //connect(dconfig, SIGNAL(folderWorkoutChanged()), ui->tab_workout1, SLOT(refreshUserWorkout()) );
 
 
-    leftMenuChanged(5);
+    leftMenuChanged(2);
     enableStudioMode(false);
 
     qDebug() << "before get radio......";
@@ -197,9 +194,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //connect(ui->webView_studio, SIGNAL(loadFinished(bool)), this, SLOT(fillStudioPage()));
 
     //////////////Necar mod///////////////
-    isSensorStart = false;    
+    isSensorStart = false;
+
+    if(account->display_name != "default"){
+        ui->comboBox_user->setCurrentText(account->display_name);
+    }
 
     this->loadSensorList();
+
+    this->loadUserData();
+}
+
+
+void MainWindow::loadUserData(){
+    ui->lineEdit_height->setText(QString::number(account->getHeightCm()));
+    ui->lineEdit_weight->setText(QString::number(account->getWeightKg()));
+    ui->lineEdit_ftp->setText(QString::number(account->getFTP()));
+    ui->lineEdit_lthr->setText(QString::number(account->getLTHR()));
+    ui->checkBox_trainerResistence->setChecked(account->control_trainer_resistance);
 }
 
 
@@ -212,7 +224,7 @@ void MainWindow::downloadRequested(QWebEngineDownloadItem* download) {
     QFileInfo fileInfo(download->path());
     QString filename(fileInfo.fileName());
 
-//    fileInfo.
+    //    fileInfo.
 
     download->setPath(Util::getSystemPathWorkout() + QDir::separator() + "ergdb" + QDir::separator() + filename);
     qDebug() << "Path: " << download->path();
@@ -285,16 +297,16 @@ void MainWindow::slotFinishedGetRadio() {
 
 
     //success
-/*    if (replyRadio->error() == QNetworkReply::NoError) {
+    /*    if (replyRadio->error() == QNetworkReply::NoError) {
         qDebug() << "Get radio finished!";
         QByteArray arrayData =  replyRadio->readAll();
         lstRadio = Util::parseJsonRadioList(arrayData);
         //enable mainWindow
         ui->widget_bottomMenu->removeGeneralMessage();
 */
-        replyRadioDone = true;
-        checkToEnableWindow();
-/*
+    replyRadioDone = true;
+    checkToEnableWindow();
+    /*
 
         replyRadio->deleteLater();
     }
@@ -431,7 +443,7 @@ void MainWindow::leftMenuChanged(int tabSelected) {
     ///Keyword: RemoveCOURSE Temp
     /// to change index is different with course added..
 
-    if (currentIndexLeftMenu == 3 && ftpChanged) { ///Also check that FTP has changed..
+    if (currentIndexLeftMenu == 1 && ftpChanged) { ///Also check that FTP has changed..
         qDebug() << "-*-*-*-OK FTP CHANGED, RECALCULATE!";
         emit ftpAndTabProfileChanged();
         ftpChanged = false;
@@ -528,22 +540,22 @@ void MainWindow::updateFieldForUser(int riderID, int fieldNumber, QVariant value
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainWindow::enableStudioMode(bool enable) {
 
-    account->enable_studio_mode = enable;
+    //    account->enable_studio_mode = enable;
 
-    //    nb_user_studio
+    //    //    nb_user_studio
 
-    qDebug() << "Enable Studio Mode!" << enable;
+    //    qDebug() << "Enable Studio Mode!" << enable;
 
 
-    if (enable) {
-        this->setWindowTitle("MaximumTrainer - Studio");
-    }
-    else {
-        this->setWindowTitle("MaximumTrainer");
-    }
+    //    if (enable) {
+    //        this->setWindowTitle("MaximumTrainer - Studio");
+    //    }
+    //    else {
+    //        this->setWindowTitle("MaximumTrainer");
+    //    }
 
-    ftb->setTabEnabled(4, !enable);
-    ftb->setTabEnabled(5, !enable);
+    //    ftb->setTabEnabled(4, !enable);
+    //    ftb->setTabEnabled(5, !enable);
 
 }
 
@@ -875,9 +887,9 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 
     // Put updated account data to server
-//    replySaveAccount = UserDAO::putAccount(account);
-//    QObject::connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
-//    loop.exec(); //dont leave until data uploaded to server
+    //    replySaveAccount = UserDAO::putAccount(account);
+    //    QObject::connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
+    //    loop.exec(); //dont leave until data uploaded to server
 
 
     //Wait for hub to close
@@ -897,30 +909,30 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-void MainWindow::postDataAccountFinished() {
+//void MainWindow::postDataAccountFinished() {
 
-    //success, process data
-    if (replySaveAccount->error() == QNetworkReply::NoError) {
-        qDebug() << "no error postDataAccountFinished!";
-        loop.quit();
-    }
+//    //success, process data
+//    if (replySaveAccount->error() == QNetworkReply::NoError) {
+//        qDebug() << "no error postDataAccountFinished!";
+//        loop.quit();
+//    }
 
-    // error, retry request
-    else {
-        if (saveAccountTry > 5) {
-            savingWindow.setMessage("Could not save on server");
-            qDebug() << "could not save 5 time in a row, leaving!";
-            loop.quit();
-        }
-        else {
-            saveAccountTry++;
-            qDebug() << "postDataAccountFinished error" << replySaveAccount->errorString();
-            replySaveAccount = UserDAO::putAccount(account);
-            connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
-        }
-    }
+//    // error, retry request
+//    else {
+//        if (saveAccountTry > 5) {
+//            savingWindow.setMessage("Could not save on server");
+//            qDebug() << "could not save 5 time in a row, leaving!";
+//            loop.quit();
+//        }
+//        else {
+//            saveAccountTry++;
+//            qDebug() << "postDataAccountFinished error" << replySaveAccount->errorString();
+//            replySaveAccount = UserDAO::putAccount(account);
+//            connect(replySaveAccount, SIGNAL(finished()), this, SLOT(postDataAccountFinished()) );
+//        }
+//    }
 
-}
+//}
 
 //QMENUBAR
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1132,7 +1144,7 @@ void MainWindow::on_actionSingle_Workout_triggered()
     if (file.isEmpty())
         return;
 
-    Workout importedWorkout = ImporterWorkout::importWorkoutFromFile(file, account->FTP);
+    Workout importedWorkout = ImporterWorkout::importWorkoutFromFile(file, account->getFTP());
 
     savePathImport(file);
 
@@ -1161,7 +1173,7 @@ void MainWindow::on_actionMultiple_Workouts_triggered()
     if (folder.isEmpty())
         return;
 
-    bool result = ImporterWorkout::batchImportWorkoutFromFolder(folder, account->FTP);
+    bool result = ImporterWorkout::batchImportWorkoutFromFolder(folder, account->getFTP());
 
     if (result) {
         //Open Folder in explorer (finder)
@@ -1520,7 +1532,7 @@ void MainWindow::saveSensorSettings(Sensor *sensor){
     default: return;
     }
 
-    settings.setValue("sensor/"+type, sensor->getAntId());
+    settings.setValue("sensor_" + account->getDisplayName()+"/"+type, sensor->getAntId());
 }
 
 void MainWindow::removeSensorSettings(Sensor *sensor){
@@ -1542,7 +1554,7 @@ void MainWindow::removeSensorSettings(Sensor *sensor){
     default: return;
     }
 
-    settings.remove("sensor/"+type);
+    settings.remove("sensor_" + account->getDisplayName()+"/"+type);
 }
 
 void MainWindow::deleteSensor(Sensor *sensor){
@@ -1561,7 +1573,9 @@ void MainWindow::deleteSensor(Sensor *sensor){
 
 void MainWindow::loadSensorList(){
     QSettings settings;
-    settings.beginGroup("sensor");
+    settings.beginGroup("sensor_" + account->getDisplayName());
+
+    lstSensor.clear();
 
     QString key = "heartrate";
     if(settings.contains(key)){
@@ -1716,4 +1730,54 @@ void MainWindow::on_pushButton_cadence_delete_clicked()
     Sensor* cadence = new Sensor(ui->label_cadence_connected->text().toInt(), Sensor::SENSOR_TYPE::SENSOR_CADENCE, "", "");
     ui->label_cadence_connected->setText("");
     deleteSensor(cadence);
+}
+
+void MainWindow::on_lineEdit_height_editingFinished()
+{
+    int height = ui->lineEdit_height->text().toInt();
+    if(height != account->getHeightCm()){
+        account->setHeightCm(height);
+    }
+}
+
+void MainWindow::on_lineEdit_weight_editingFinished()
+{
+    double weight = ui->lineEdit_weight->text().toDouble();
+    if(abs(weight - account->getWeightKg()) > 0.1){
+        account->setWeightKg(weight);
+    }
+}
+
+void MainWindow::on_lineEdit_ftp_editingFinished()
+{
+    int ftp = ui->lineEdit_ftp->text().toInt();
+    if(ftp != account->getFTP()){
+        account->setFTP(ftp);
+        setFlagFtpChanged();
+    }
+}
+
+void MainWindow::on_lineEdit_lthr_editingFinished()
+{
+    int lthr = ui->lineEdit_lthr->text().toInt();
+    if(lthr != account->getLTHR()){
+        account->setLTHR(lthr);
+        setFlagFtpChanged();
+    }
+}
+
+void MainWindow::on_checkBox_trainerResistence_stateChanged(int state)
+{
+    bool use = ui->checkBox_trainerResistence->isChecked();
+    if(use != account->control_trainer_resistance){
+        account->setControl_trainer_resistance(use);
+    }
+}
+
+void MainWindow::on_comboBox_user_currentIndexChanged(const QString &name)
+{
+    account->setDisplayName(name);
+    account = new Account(this);
+    this->loadUserData();
+    this->loadSensorList();
 }

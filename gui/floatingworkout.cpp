@@ -377,11 +377,11 @@ FloatingWorkout::FloatingWorkout(QVector<Hub*> paraVecHub, QVector<int> paraVecS
     ui->wid_3_minimalistCadence->setTypeWidget(MinimalistWidget::CADENCE);
 
     //Set User Data in all widgets
-    ui->widget_workoutPlot->setUserData(account->FTP, account->LTHR);
-    ui->wid_2_workoutPlot_PowerZoom->setUserData(account->FTP, account->LTHR);
-    ui->wid_1_minimalistHr->setUserData(account->FTP, account->LTHR);
-    ui->wid_2_minimalistPower->setUserData(account->FTP, account->LTHR);
-    ui->wid_3_minimalistCadence->setUserData(account->FTP, account->LTHR);
+    ui->widget_workoutPlot->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_2_workoutPlot_PowerZoom->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_1_minimalistHr->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_2_minimalistPower->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_3_minimalistCadence->setUserData(account->getFTP(), account->getLTHR());
     // Set Workout Data to widgets
     ui->widget_workoutPlot->setWorkoutData(workout, true);
     ui->wid_2_workoutPlot_PowerZoom->setWorkoutData(workout, WorkoutPlotZoomer::POWER, true);
@@ -829,15 +829,15 @@ void FloatingWorkout::update1sec(double totalTimeElapsed_sec) {
 
 
 
-    if(timeInterval.minute()==0 && timeInterval.hour()== 0 && (timeInterval.second()==account->nb_sec_show_interval_before || timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) )  {
+    if(timeInterval.minute()==0 && timeInterval.hour()== 0 && (timeInterval.second()==account->getNb_sec_show_interval_before() || timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) )  {
         soundsActive = false;
         if (currentInterval+1 != this->workout.getNbInterval()) {
 
-            if (timeInterval.second() == account->nb_sec_show_interval_before) {
+            if (timeInterval.second() == account->getNb_sec_show_interval_before()) {
                 //show next interval message
                 Interval newInterval = workout.getLstInterval().at(currentInterval+1);
                 if (newInterval.getDisplayMessage() != "")
-                    ui->widget_workoutPlot->setDisplayIntervalMessage(true, tr("Next Interval: ") + newInterval.getDisplayMessage(), account->nb_sec_show_interval);
+                    ui->widget_workoutPlot->setDisplayIntervalMessage(true, tr("Next Interval: ") + newInterval.getDisplayMessage(), account->getNb_sec_show_interval());
             }
             else if (timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) {
                 if (account->enable_sound && account->sound_interval)
@@ -976,9 +976,9 @@ void FloatingWorkout::insertInterval() {
 
     // for Mamp test, take next interval and increase 30W
     Interval nextInterval = lstIntervalModified.at(currentInterval+1);
-    double currentWattsLevel = nextInterval.getFTP_start() * account->FTP;
+    double currentWattsLevel = nextInterval.getFTP_start() * account->getFTP();
     double nextWattsLevel = currentWattsLevel + 30;
-    double inFTP = nextWattsLevel/account->FTP;
+    double inFTP = nextWattsLevel/account->getFTP();
 
     QString msgNextInterval = QString::number(nextWattsLevel) + " watts";
     nextInterval.setTargetFTP_start(inFTP);
@@ -1118,7 +1118,7 @@ void FloatingWorkout::moveToInterval(int nbInterval, double secWorkout, double s
     adjustTargets(currentIntervalObj);
 
     if (currentIntervalObj.getDisplayMessage() != "")
-        ui->widget_workoutPlot->setDisplayIntervalMessage(false, currentIntervalObj.getDisplayMessage(), account->nb_sec_show_interval);
+        ui->widget_workoutPlot->setDisplayIntervalMessage(false, currentIntervalObj.getDisplayMessage(), account->getNb_sec_show_interval());
 
 
     //-- Update Timers
@@ -1152,7 +1152,7 @@ void FloatingWorkout::moveToNextInterval() {
 
     Interval newInterval = workout.getLstInterval().at(currentInterval+1);
     if (newInterval.getDisplayMessage() != "")
-        ui->widget_workoutPlot->setDisplayIntervalMessage(false, newInterval.getDisplayMessage(), account->nb_sec_show_interval);
+        ui->widget_workoutPlot->setDisplayIntervalMessage(false, newInterval.getDisplayMessage(), account->getNb_sec_show_interval());
 
 
     adjustTargets(newInterval);
@@ -1202,7 +1202,7 @@ void FloatingWorkout::workoutOver() {
     ui->widget_workoutPlot->setDisplayIntervalMessage(true, tr("Workout Completed!"), 20000);
 
     isWorkoutPaused = true;
-    ui->widget_workoutPlot->setSpinBoxDisabled();
+    //ui->widget_workoutPlot->setSpinBoxDisabled();
 
 
     setWidgetsStopped(true);
@@ -1218,7 +1218,7 @@ void FloatingWorkout::workoutOver() {
 
 
     // Set workout to done
-    account->hashWorkoutDone.insert(workout.getName());
+    account->insertHashWorkoutDone(workout.getName());
 }
 
 
@@ -1241,7 +1241,7 @@ void FloatingWorkout::start_or_pause_workout() {
         isWorkoutStarted = true;
         isWorkoutPaused = false;
         if (this->workout.getInterval(0).getDisplayMessage() != "")
-            ui->widget_workoutPlot->setDisplayIntervalMessage(true, this->workout.getInterval(0).getDisplayMessage(), account->nb_sec_show_interval);
+            ui->widget_workoutPlot->setDisplayIntervalMessage(true, this->workout.getInterval(0).getDisplayMessage(), account->getNb_sec_show_interval());
         setWidgetsStopped(false);
         startWorkout();
         emit playPlayer();
@@ -1350,8 +1350,6 @@ void FloatingWorkout::HrDataReceived(int userID, int value) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void FloatingWorkout::CadenceDataReceived(int userID, int value) {
-
-
     // invalid value, show "-" to the user
     if (value == -1 || value > 250) {
         //ui->wid_3_minimalistCadence->setValue(value);
@@ -1413,7 +1411,7 @@ void FloatingWorkout::CadenceDataReceived(int userID, int value) {
             averageCadence1sec.replace(userID-1, firstEle + secondEle);
         }
         nbPointCadence1sec.replace(userID-1, nbPointCadence1sec.at(userID-1) + 1);
-    } else if (!account->enable_studio_mode && (account->start_trigger == 0) && (!isWorkoutStarted) && (value > account->value_cadence_start) ) {
+    } else if (!account->enable_studio_mode && (account->start_trigger == 0) && (!isWorkoutStarted || isWorkoutPaused) && (value > account->value_cadence_start) ) {
         qDebug() << "Above cadence threshold, workout start!";
         start_or_pause_workout();
     }
@@ -1648,7 +1646,7 @@ void FloatingWorkout::targetPowerChanged_f(double percentageTarget, int range) {
     }
 
 
-    currentTargetPower = qRound(percentageTarget * account->FTP);
+    currentTargetPower = qRound(percentageTarget * account->getFTP());
     currentTargetPowerRange =  range;
     sendTargetsPower(percentageTarget, range);
 }
@@ -2261,11 +2259,11 @@ void FloatingWorkout::initDataWorkout() {
     if (account->enable_studio_mode) {
         for (int i=0; i<account->nb_user_studio; i++) {
             qDebug() << "Create DataWorkout for this user" << i;
-            arrDataWorkout[i] = new DataWorkout(this->workout, account->FTP, this);
+            arrDataWorkout[i] = new DataWorkout(this->workout, account->getFTP(), this);
         }
     }
     else {
-        arrDataWorkout[0] = new DataWorkout(this->workout, account->FTP, this);
+        arrDataWorkout[0] = new DataWorkout(this->workout, account->getFTP(), this);
     }
 }
 
@@ -2282,10 +2280,10 @@ void FloatingWorkout::showTestResult() {
         int newLTHR = arrDataWorkout[0]->getLTHR();
         mainPlot->setAlertMessage(true, false, workout.getName() + tr(" Result")
                                   + "<div style='color:white;height:7px;'>------------------------------------</div><br/> "
-                                  + tr("FTP: ") + QString::number(newFTP) + tr(" watts") + tr(" (Previous: ") +  QString::number(account->FTP) + tr(" watts)") + "<br/>"
-                                  + tr("LTHR: ")  + QString::number(newLTHR) + tr(" bpm") + tr(" (Previous: ") +  QString::number(account->LTHR) + tr(" bpm)"), 500);
-        if (newFTP > 0) { account->FTP = newFTP; }
-        if (newLTHR > 0) { account->LTHR = newLTHR; }
+                                  + tr("FTP: ") + QString::number(newFTP) + tr(" watts") + tr(" (Previous: ") +  QString::number(account->getFTP()) + tr(" watts)") + "<br/>"
+                                  + tr("LTHR: ")  + QString::number(newLTHR) + tr(" bpm") + tr(" (Previous: ") +  QString::number(account->getLTHR()) + tr(" bpm)"), 500);
+        if (newFTP > 0) { account->setFTP(newFTP); }
+        if (newLTHR > 0) { account->setLTHR(newLTHR); }
         emit ftp_lthr_changed();
     }
 
@@ -2317,11 +2315,11 @@ void FloatingWorkout::sendUserInfoToClock() {
             //            UserStudio myUserStudio = vecUserStudio.at(i);
             //            double cda = 30;
             //            double weight = 80;
-            emit sendUserInfo(i+1, account->userCda, account->bike_weight_kg + account->weight_kg, account->nb_user_studio);
+            emit sendUserInfo(i+1, account->userCda, account->bike_weight_kg + account->getWeightKg(), account->nb_user_studio);
         }
     }
     else {
-        emit sendUserInfo(1, account->userCda, account->bike_weight_kg + account->weight_kg, 1);
+        emit sendUserInfo(1, account->userCda, account->bike_weight_kg + account->getWeightKg(), 1);
     }
 }
 
@@ -2522,10 +2520,10 @@ void FloatingWorkout::hrCadAnimationFinished(){
 }
 
 void FloatingWorkout::fakeData() {
-    //int value = (qrand() % ((150 + 1) - 130) + 130);
-    //HrDataReceived(1, value);
-    //value = (qrand() % ((75 + 1) - 60) + 60);
-    //CadenceDataReceived(1, value);
+//    int value = (qrand() % ((150 + 1) - 130) + 130);
+//    HrDataReceived(1, value);
+//    value = (qrand() % ((75 + 1) - 60) + 60);
+//    CadenceDataReceived(1, value);
 
 //    qint64 current = QDateTime::currentSecsSinceEpoch();
 //    if(current > lastFakeChangeTime + 1){

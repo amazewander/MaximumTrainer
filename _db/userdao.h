@@ -15,7 +15,7 @@ public:
 
 
 
-    static QNetworkReply* putAccount(Account *account);
+//    static QNetworkReply* putAccount(Account *account);
 
 //    static QNetworkReply* getAccount(int id, QString session_mt_id);
 

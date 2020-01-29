@@ -68,6 +68,8 @@ private slots:
 
 
 
+    void on_pushButton_save_clicked();
+
 private :
     void restoreRepeatWidgetInterface();
     void ajustRepeatWidgetPosition();

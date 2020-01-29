@@ -114,7 +114,7 @@ QVariant WorkoutTableModel::data(const QModelIndex &index, int role) const {
 
 
     ///Background
-    if (role == Qt::BackgroundColorRole && account->hashWorkoutDone.contains(work.getName())) {
+    if (role == Qt::BackgroundColorRole && account->getHashWorkoutDone().contains(work.getName())) {
         //        QColor colorCadenceShapeTarget(150,150,150);
         QLinearGradient linearGrad(QPointF(0, 0), QPointF(0, 125));
         linearGrad.setColorAt(1, Qt::white);

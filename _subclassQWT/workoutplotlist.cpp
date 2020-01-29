@@ -55,7 +55,7 @@ void WorkoutPlotList::init() {
 
     setAutoReplot( false );
 
-    int max_power = workout.getMaxPowerPourcent() * account->FTP;
+    int max_power = workout.getMaxPowerPourcent() * account->getFTP();
 
     if (max_power < 200)
         max_power = 200;
@@ -116,8 +116,8 @@ void WorkoutPlotList::drawGraphIntervals() {
     QPointF btnRightH;
 
 
-    int ftp = account->FTP;
-    int lthr = account->LTHR;
+    int ftp = account->getFTP();
+    int lthr = account->getLTHR();
     double time = 0;
     int i=0;
     Interval lastVal;

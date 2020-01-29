@@ -64,7 +64,7 @@ WorkoutDialog::~WorkoutDialog() {
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-WorkoutDialog::WorkoutDialog(QVector<Hub*> vecHub, QVector<int> vecStickIdUsed, Workout workout,  QList<Radio> lstRadio, QVector<UserStudio> vecUserStudio,
+WorkoutDialog::WorkoutDialog(QVector<Hub*> paraVecHub, QVector<int> paraVecStickIdUsed, Workout paraWorkout,  QList<Radio> paraLstRadio, QVector<UserStudio> paraVecUserStudio,
                              QWidget *parent) : QDialog(parent), ui(new Ui::WorkoutDialog) {
 
     ui->setupUi(this);
@@ -78,14 +78,14 @@ WorkoutDialog::WorkoutDialog(QVector<Hub*> vecHub, QVector<int> vecStickIdUsed, 
 #endif
 
 
-    this->vecHub = vecHub;
-    this->vecStickIdUsed = vecStickIdUsed;
+    this->vecHub = paraVecHub;
+    this->vecStickIdUsed = paraVecStickIdUsed;
     this->account = qApp->property("Account").value<Account*>();
     this->settings = qApp->property("User_Settings").value<Settings*>();
     this->soundPlayer =  qApp->property("SoundPlayer").value<SoundPlayer*>();
     this->achievementManager = qApp->property("ManagerAchievement").value<ManagerAchievement*>();
-    this->workout = workout;
-    this->vecUserStudio = vecUserStudio;
+    this->workout = paraWorkout;
+    this->vecUserStudio = paraVecUserStudio;
     soundPlayer->setVolume(account->sound_player_vol);
     msgPairingDone = tr("Done!");
 
@@ -352,9 +352,9 @@ WorkoutDialog::WorkoutDialog(QVector<Hub*> vecHub, QVector<int> vecStickIdUsed, 
     }
 
     //-- Check Session_ID is in DB and session is not expired
-    numberFailCheckSessionExpired = 0;
-    replyPutAccountToCheckSessionExpired = UserDAO::putAccount(account);
-    connect(replyPutAccountToCheckSessionExpired, SIGNAL(finished()), this, SLOT(slotPutAccountFinished()) );
+    //numberFailCheckSessionExpired = 0;
+    //replyPutAccountToCheckSessionExpired = UserDAO::putAccount(account);
+    //connect(replyPutAccountToCheckSessionExpired, SIGNAL(finished()), this, SLOT(slotPutAccountFinished()) );
 
 
     ///-------------------------- Battery widgets ----------------------
@@ -520,17 +520,17 @@ WorkoutDialog::WorkoutDialog(QVector<Hub*> vecHub, QVector<int> vecStickIdUsed, 
     ui->wid_3_minimalistCadence->setTypeWidget(MinimalistWidget::CADENCE);
 
     //Set User Data in all widgets
-    ui->widget_workoutPlot->setUserData(account->FTP, account->LTHR);
-    ui->wid_1_workoutPlot_HeartrateZoom->setUserData(account->FTP, account->LTHR);
-    ui->wid_2_workoutPlot_PowerZoom->setUserData(account->FTP, account->LTHR);
-    ui->wid_3_workoutPlot_CadenceZoom->setUserData(account->FTP, account->LTHR);
-    ui->wid_1_minimalistHr->setUserData(account->FTP, account->LTHR);
-    ui->wid_2_minimalistPower->setUserData(account->FTP, account->LTHR);
-    ui->wid_3_minimalistCadence->setUserData(account->FTP, account->LTHR);
-    ui->wid_1_infoBoxHr->setUserData(account->FTP, account->LTHR);
-    ui->wid_2_infoBoxPower->setUserData(account->FTP, account->LTHR);
-    ui->wid_3_infoBoxCadence->setUserData(account->FTP, account->LTHR);
-    ui->wid_4_infoBoxSpeed->setUserData(account->FTP, account->LTHR);
+    ui->widget_workoutPlot->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_1_workoutPlot_HeartrateZoom->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_2_workoutPlot_PowerZoom->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_3_workoutPlot_CadenceZoom->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_1_minimalistHr->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_2_minimalistPower->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_3_minimalistCadence->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_1_infoBoxHr->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_2_infoBoxPower->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_3_infoBoxCadence->setUserData(account->getFTP(), account->getLTHR());
+    ui->wid_4_infoBoxSpeed->setUserData(account->getFTP(), account->getLTHR());
     // Set Workout Data to widgets
     ui->widget_workoutPlot->setWorkoutData(workout, true);
     ui->wid_1_workoutPlot_HeartrateZoom->setWorkoutData(workout, WorkoutPlotZoomer::HEART_RATE, true);
@@ -586,7 +586,7 @@ WorkoutDialog::WorkoutDialog(QVector<Hub*> vecHub, QVector<int> vecStickIdUsed, 
 
 
     //Dialog config
-    dconfig = new DialogConfig(lstRadio, this, this);
+    dconfig = new DialogConfig(paraLstRadio, this, this);
     dconfig->setModal(true);
 
     //Internet Radio Player
@@ -1180,15 +1180,15 @@ void WorkoutDialog::update1sec(double totalTimeElapsed_sec) {
 
 
 
-    if(timeInterval.minute()==0 && timeInterval.hour()== 0 && (timeInterval.second()==account->nb_sec_show_interval_before || timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) )  {
+    if(timeInterval.minute()==0 && timeInterval.hour()== 0 && (timeInterval.second()==account->getNb_sec_show_interval_before() || timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) )  {
         soundsActive = false;
         if (currentInterval+1 != this->workout.getNbInterval()) {
 
-            if (timeInterval.second() == account->nb_sec_show_interval_before) {
+            if (timeInterval.second() == account->getNb_sec_show_interval_before()) {
                 //show next interval message
                 Interval newInterval = workout.getLstInterval().at(currentInterval+1);
                 if (newInterval.getDisplayMessage() != "")
-                    ui->widget_workoutPlot->setDisplayIntervalMessage(true, tr("Next Interval: ") + newInterval.getDisplayMessage(), account->nb_sec_show_interval);
+                    ui->widget_workoutPlot->setDisplayIntervalMessage(true, tr("Next Interval: ") + newInterval.getDisplayMessage(), account->getNb_sec_show_interval());
             }
             else if (timeInterval.second()==3 || timeInterval.second()==2 || timeInterval.second()==1) {
                 if (account->enable_sound && account->sound_interval)
@@ -1344,9 +1344,9 @@ void WorkoutDialog::insertInterval() {
 
     // for Mamp test, take next interval and increase 30W
     Interval nextInterval = lstIntervalModified.at(currentInterval+1);
-    double currentWattsLevel = nextInterval.getFTP_start() * account->FTP;
+    double currentWattsLevel = nextInterval.getFTP_start() * account->getFTP();
     double nextWattsLevel = currentWattsLevel + 30;
-    double inFTP = nextWattsLevel/account->FTP;
+    double inFTP = nextWattsLevel/account->getFTP();
 
     QString msgNextInterval = QString::number(nextWattsLevel) + " watts";
     nextInterval.setTargetFTP_start(inFTP);
@@ -1490,7 +1490,7 @@ void WorkoutDialog::moveToInterval(int nbInterval, double secWorkout, double sta
     adjustTargets(currentIntervalObj);
 
     if (currentIntervalObj.getDisplayMessage() != "")
-        ui->widget_workoutPlot->setDisplayIntervalMessage(false, currentIntervalObj.getDisplayMessage(), account->nb_sec_show_interval);
+        ui->widget_workoutPlot->setDisplayIntervalMessage(false, currentIntervalObj.getDisplayMessage(), account->getNb_sec_show_interval());
 
 
     //-- Update Timers
@@ -1528,7 +1528,7 @@ void WorkoutDialog::moveToNextInterval() {
 
     Interval newInterval = workout.getLstInterval().at(currentInterval+1);
     if (newInterval.getDisplayMessage() != "")
-        ui->widget_workoutPlot->setDisplayIntervalMessage(false, newInterval.getDisplayMessage(), account->nb_sec_show_interval);
+        ui->widget_workoutPlot->setDisplayIntervalMessage(false, newInterval.getDisplayMessage(), account->getNb_sec_show_interval());
 
     ui->widget_time->setIntervalTime(newInterval.getDurationQTime());
     ui->widget_topMenu->setIntervalTime(newInterval.getDurationQTime());
@@ -1601,10 +1601,10 @@ void WorkoutDialog::workoutOver() {
 
 
     // Set workout to done
-    account->hashWorkoutDone.insert(workout.getName());
+    account->insertHashWorkoutDone(workout.getName());
 
     // Save data DB (update Achievements, stats etc.)
-    UserDAO::putAccount(account);
+    //UserDAO::putAccount(account);
 }
 
 
@@ -1628,7 +1628,7 @@ void WorkoutDialog::start_or_pause_workout() {
         isWorkoutStarted = true;
         isWorkoutPaused = false;
         if (this->workout.getInterval(0).getDisplayMessage() != "")
-            ui->widget_workoutPlot->setDisplayIntervalMessage(true, this->workout.getInterval(0).getDisplayMessage(), account->nb_sec_show_interval);
+            ui->widget_workoutPlot->setDisplayIntervalMessage(true, this->workout.getInterval(0).getDisplayMessage(), account->getNb_sec_show_interval());
         setWidgetsStopped(false);
         startWorkout();
         emit playPlayer();
@@ -2283,7 +2283,7 @@ void WorkoutDialog::targetPowerChanged_f(double percentageTarget, int range) {
     }
 
 
-    currentTargetPower = qRound(percentageTarget * account->FTP);
+    currentTargetPower = qRound(percentageTarget * account->getFTP());
     currentTargetPowerRange =  range;
     ui->widget_time->setTargetPower(percentageTarget, range);
     ui->widget_topMenu->setTargetPower(percentageTarget, range);
@@ -3000,7 +3000,7 @@ void WorkoutDialog::slotPutAccountFinished() {
         else {
             numberFailCheckSessionExpired++;
             qDebug() << "postDataAccountFinished error" << replyPutAccountToCheckSessionExpired->errorString();
-            replyPutAccountToCheckSessionExpired = UserDAO::putAccount(account);
+            //replyPutAccountToCheckSessionExpired = UserDAO::putAccount(account);
             connect(replyPutAccountToCheckSessionExpired, SIGNAL(finished()), this, SLOT(slotPutAccountFinished()) );
             return;
         }
@@ -3117,7 +3117,7 @@ void WorkoutDialog::sureYouWantToQuit() {
             }
 
             /// Save data DB (update Achievements, stats etc.)
-            UserDAO::putAccount(account);
+            //UserDAO::putAccount(account);
             QDialog::accept();
         }
         else if (reply == QMessageBox::No) {
@@ -3298,11 +3298,11 @@ void WorkoutDialog::initDataWorkout() {
     if (account->enable_studio_mode) {
         for (int i=0; i<account->nb_user_studio; i++) {
             qDebug() << "Create DataWorkout for this user" << i;
-            arrDataWorkout[i] = new DataWorkout(this->workout, account->FTP, this);
+            arrDataWorkout[i] = new DataWorkout(this->workout, account->getFTP(), this);
         }
     }
     else {
-        arrDataWorkout[0] = new DataWorkout(this->workout, account->FTP, this);
+        arrDataWorkout[0] = new DataWorkout(this->workout, account->getFTP(), this);
     }
 }
 
@@ -3402,10 +3402,10 @@ void WorkoutDialog::showTestResult() {
             int newLTHR = arrDataWorkout[0]->getLTHR();
             mainPlot->setAlertMessage(true, false, workout.getName() + tr(" Result")
                                       + "<div style='color:white;height:7px;'>------------------------------------</div><br/> "
-                                      + tr("FTP: ") + QString::number(newFTP) + tr(" watts") + tr(" (Previous: ") +  QString::number(account->FTP) + tr(" watts)") + "<br/>"
-                                      + tr("LTHR: ")  + QString::number(newLTHR) + tr(" bpm") + tr(" (Previous: ") +  QString::number(account->LTHR) + tr(" bpm)"), 500);
-            if (newFTP > 0) { account->FTP = newFTP; }
-            if (newLTHR > 0) { account->LTHR = newLTHR; }
+                                      + tr("FTP: ") + QString::number(newFTP) + tr(" watts") + tr(" (Previous: ") +  QString::number(account->getFTP()) + tr(" watts)") + "<br/>"
+                                      + tr("LTHR: ")  + QString::number(newLTHR) + tr(" bpm") + tr(" (Previous: ") +  QString::number(account->getLTHR()) + tr(" bpm)"), 500);
+            if (newFTP > 0) { account->setFTP(newFTP); }
+            if (newLTHR > 0) { account->setLTHR(newLTHR); }
             emit ftp_lthr_changed();
         }
     }
@@ -3450,11 +3450,11 @@ void WorkoutDialog::sendUserInfoToClock() {
             //            UserStudio myUserStudio = vecUserStudio.at(i);
             //            double cda = 30;
             //            double weight = 80;
-            emit sendUserInfo(i+1, account->userCda, account->bike_weight_kg + account->weight_kg, account->nb_user_studio);
+            emit sendUserInfo(i+1, account->userCda, account->bike_weight_kg + account->getWeightKg(), account->nb_user_studio);
         }
     }
     else {
-        emit sendUserInfo(1, account->userCda, account->bike_weight_kg + account->weight_kg, 1);
+        emit sendUserInfo(1, account->userCda, account->bike_weight_kg + account->getWeightKg(), 1);
     }
 }
 
@@ -3570,7 +3570,7 @@ void WorkoutDialog::connectDataWorkout() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 bool WorkoutDialog::eventFilter(QObject *watched, QEvent *event) {
 
-    Q_UNUSED(watched);
+    Q_UNUSED(watched)
 
     //    qDebug() << "EventFilter " << watched << "Event:" << event;
 

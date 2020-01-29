@@ -86,7 +86,7 @@ QVariant CourseTableModel::data(const QModelIndex &index, int role) const {
 
     ///Background
 //    qDebug() << "courseNameIs:" << course.getName();
-    if (role == Qt::BackgroundColorRole && account->hashCourseDone.contains(course.getName())) {
+    if (role == Qt::BackgroundColorRole && account->getHashCourseDone().contains(course.getName())) {
         //        QColor colorCadenceShapeTarget(150,150,150);
         QLinearGradient linearGrad(QPointF(0, 0), QPointF(0, 125));
         linearGrad.setColorAt(1, Qt::white);

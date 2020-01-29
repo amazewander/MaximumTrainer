@@ -31,9 +31,6 @@ WorkoutCreator::WorkoutCreator(QWidget *parent) : QWidget(parent), ui(new Ui::Wo
     ui->setupUi(this);
 
     this->account = qApp->property("Account").value<Account*>();
-
-
-    ui->webView_createWorkout->setUrl(QUrl(Environnement::getUrlWorkoutCreator()));
     /// ----------------------------------------------------
 
 
@@ -746,3 +743,8 @@ void WorkoutCreator::paintEvent(QPaintEvent *) {
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
+
+void WorkoutCreator::on_pushButton_save_clicked()
+{
+    this->createWorkout(ui->lineEdit_name->text(), ui->lineEdit_plan->text(), ui->lineEdit_creator->text(), ui->textEdit_desc->toPlainText(), ui->comboBox_type->currentIndex());
+}

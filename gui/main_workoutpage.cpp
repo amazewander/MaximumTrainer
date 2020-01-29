@@ -61,7 +61,7 @@ Main_WorkoutPage::Main_WorkoutPage(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->tableView_workout->setModel(proxyModel);
     ui->tableView_workout->verticalHeader()->setDefaultSectionSize(60);
 
-    ui->webView_workouts->setUrl(QUrl(Environnement::getUrlWorkout()));
+    //ui->webView_workouts->setUrl(QUrl(Environnement::getUrlWorkout()));
 
 
     ui->tableView_workout->sortByColumn(0, Qt::AscendingOrder);
@@ -109,7 +109,7 @@ Main_WorkoutPage::Main_WorkoutPage(QWidget *parent) : QWidget(parent), ui(new Ui
     actionOpenFolder->setEnabled(false);
 
 
-    connect(ui->webView_workouts, SIGNAL(loadFinished(bool)), this, SLOT(fillWorkoutPage()));
+    //connect(ui->webView_workouts, SIGNAL(loadFinished(bool)), this, SLOT(fillWorkoutPage()));
 
 }
 
@@ -128,8 +128,8 @@ void Main_WorkoutPage::parseIncludedWorkouts() {
 
     lstWorkout.append(lstWorkoutBase);
     lstWorkout.append(sufferfest);
-    lstWorkout.append(planBT);
-    lstWorkout.append(rachel);
+    //lstWorkout.append(planBT);
+    //lstWorkout.append(rachel);
     tableModel->addListWorkout(lstWorkout);
 
 }
@@ -186,7 +186,7 @@ void Main_WorkoutPage::tableViewSelectionChanged(QItemSelection, QItemSelection)
 
     qDebug() << "name:" << workout.getName() << "workout creator:" << workout.getCreatedBy() << " NP" << workout.getNormalizedPower();
 
-    if (account->hashWorkoutDone.contains(workout.getName())) {
+    if (account->getHashWorkoutDone().contains(workout.getName())) {
         actionSetAsDone->setText(tr("Unset Done"));
     }
     else {
@@ -333,7 +333,7 @@ void Main_WorkoutPage::deleteWorkout() {
         Util::deleteLocalFile(workout.getFilePath());
 
         //  remove from lst done
-        account->hashWorkoutDone.remove(workout.getName());
+        account->getHashWorkoutDone().remove(workout.getName());
     }
     tableViewSelectionChanged(QItemSelection(), QItemSelection());
 
@@ -349,11 +349,11 @@ void Main_WorkoutPage::setAsDone() {
 
     qDebug() << "Set AS DONE!" << workout.getName();
 
-    if (account->hashWorkoutDone.contains(workout.getName())) {
-        account->hashWorkoutDone.remove(workout.getName());
+    if (account->getHashWorkoutDone().contains(workout.getName())) {
+        account->removeHashWorkoutDone(workout.getName());
     }
     else {
-        account->hashWorkoutDone.insert(workout.getName());
+        account->insertHashWorkoutDone(workout.getName());
     }
     ui->tableView_workout->selectionModel()->clearSelection();
 }
@@ -563,7 +563,7 @@ void Main_WorkoutPage::refreshUserWorkout() {
 void Main_WorkoutPage::refreshMapWorkout() {
 
     tableModel->deleleteMapWorkout();
-    parseMapWorkout(account->FTP);
+    parseMapWorkout(account->getFTP());
 }
 
 

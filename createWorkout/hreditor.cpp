@@ -114,7 +114,7 @@ void HrEditor::on_spinBox_lthrStart_valueChanged(double arg1)
 {
 
     // Convert to bpm value
-    int lthr = account->LTHR;
+    int lthr = account->getLTHR();
     if (editingInBpm) {
         myInterval.setTargetHR_start(arg1/lthr);
     }
@@ -127,7 +127,7 @@ void HrEditor::on_spinBox_lthrStart_valueChanged(double arg1)
 void HrEditor::on_spinBox_lthrEnd_valueChanged(double arg1)
 {
 
-    int lthr = account->LTHR;
+    int lthr = account->getLTHR();
     if (editingInBpm) {
         myInterval.setTargetHR_end(arg1/lthr);
     }

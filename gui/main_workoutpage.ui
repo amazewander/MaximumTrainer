@@ -24,25 +24,6 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QWebEngineView" name="webView_workouts" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>140</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>140</height>
-      </size>
-     </property>
-     <property name="contextMenuPolicy">
-      <enum>Qt::NoContextMenu</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="TableViewHover" name="tableView_workout">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -95,11 +76,11 @@
      <property name="cornerButtonEnabled">
       <bool>false</bool>
      </property>
-     <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>95</number>
-     </attribute>
      <attribute name="horizontalHeaderMinimumSectionSize">
       <number>27</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>95</number>
      </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -209,12 +190,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>QWebEngineView</class>
-   <extends>QWidget</extends>
-   <header location="global">qwebengineview.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>TableViewHover</class>
    <extends>QTableView</extends>

@@ -23,7 +23,7 @@ public:
         T_TEMPO,
         T_TEST,
         T_OTHERS,
-        T_THRESHOLD,
+        T_THRESHOLD
     };
 
     QString getTypeToString() const;

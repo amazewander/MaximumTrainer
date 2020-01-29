@@ -158,7 +158,7 @@ QVariant IntervalTableModel::data(const QModelIndex &index, int role) const {
             double ftpStart = interval.getFTP_start() *100;
             double ftpEnd = interval.getFTP_end() *100;
             int rightTarget = interval.getRightPowerTarget();
-            double userFTP = account->FTP;
+            double userFTP = account->getFTP();
 
 
             QString toShow;
@@ -223,7 +223,7 @@ QVariant IntervalTableModel::data(const QModelIndex &index, int role) const {
         {
             double hrStart = interval.getHR_start() * 100;
             double hrEnd = interval.getHR_end() * 100;
-            double userLTHR = account->LTHR;
+            double userLTHR = account->getLTHR();
 
 
             QString toShow;

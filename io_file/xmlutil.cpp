@@ -39,7 +39,7 @@ void XmlUtil::parseCourseDone(Account *account, QXmlStreamReader& xml) {
             QString courseName  = xml.readElementText();
             qDebug() << "courseName XML is:" << courseName;
             if (courseName.size() > 0)
-                account->hashCourseDone.insert(courseName);
+                account->getHashCourseDone().insert(courseName);
         }
     }
 }
@@ -69,7 +69,7 @@ void XmlUtil::parseWorkoutDone(Account *account, QXmlStreamReader& xml) {
             QString workoutName  = xml.readElementText();
             qDebug() << "workoutName XML is:" << workoutName;
             if (workoutName.size() > 0)
-                account->hashWorkoutDone.insert(workoutName);
+                account->getHashWorkoutDone().insert(workoutName);
         }
     }
 }
@@ -354,7 +354,7 @@ bool XmlUtil::saveLocalSaveFile(Account *account) {
         ///-------------------------------------------------------------------------------------------------------
         writer.writeStartElement("WorkoutDone");
 
-        foreach (const QString value, account->hashWorkoutDone) {
+        foreach (const QString value, account->getHashWorkoutDone()) {
             if (value.size() > 1)
                 writer.writeTextElement("Workout", value);
         }
@@ -363,7 +363,7 @@ bool XmlUtil::saveLocalSaveFile(Account *account) {
         ///-------------------------------------------------------------------------------------------------------
         writer.writeStartElement("CourseDone");
 
-        foreach (const QString value, account->hashCourseDone) {
+        foreach (const QString value, account->getHashCourseDone()) {
             if (value.size() > 1)
                 writer.writeTextElement("Course", value);
         }

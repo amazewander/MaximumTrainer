@@ -9,46 +9,46 @@ Account::~Account() {
 
 
 Account::Account(QObject *parent) : QObject(parent)  {
+    display_name = settings.value("last_use", "default").toString();
 
-    // -------------- Set Default values
-    id = -1;
-    subscription_type_id = 1;
-
-    email = "email";
-    password = "pw";
-    session_mt_id = "session_mt_id";
-    session_mt_expire = QDateTime::currentDateTime().addDays(1);
-
-    first_name = "first_name";
-    last_name = "last_name";
-    display_name = "display_name";
-
-    FTP = 150;
-    LTHR = 150;
-    minutes_rode = 0;
-    weight_kg = 70;
-    weight_in_kg = true;
-    height_cm = 170;
-
-    powerCurve = PowerCurve();
-    wheel_circ = 2100;
-    bike_weight_kg = 9;
-    bike_type = 2;
-
-
-    userCda = 0.35;
-
-    //-- no more DB settings, move them here later
-    QSettings settings;
-    settings.beginGroup("account");
+    //
+    settings.beginGroup("account_" + display_name);
     nb_sec_show_interval = settings.value("nb_sec_show_interval", 5 ).toInt();
     nb_sec_show_interval_before = settings.value("nb_sec_show_interval_before", 4 ).toInt();
+
+    id = settings.value("id", -1).toInt();
+    subscription_type_id = settings.value("subscription_type_id", 1).toInt();
+
+    email = settings.value("email", "email").toString();
+    password = settings.value("password", "pw").toString();
+
+    first_name = settings.value("first_name", "first_name").toString();
+    last_name = settings.value("last_name", "last_name").toString();
+
+    FTP = settings.value("FTP", 150).toInt();
+    LTHR = settings.value("LTHR", 150).toInt();
+    minutes_rode = settings.value("minutes_rode", 0).toInt();
+    weight_kg = settings.value("weight_kg", 70).toInt();
+    weight_in_kg = settings.value("weight_in_kg", true).toBool();
+    height_cm = settings.value("height_cm", 170).toInt();
+
+    powerCurve = PowerCurve();
+    wheel_circ = settings.value("wheel_circ", 2100).toInt();
+    bike_weight_kg = settings.value("bike_weight_kg", 9).toInt();
+    bike_type = settings.value("bike_type", 2).toInt();
+
+
+    userCda = settings.value("userCda", 0.35).toDouble();
+
+
+    control_trainer_resistance = settings.value("trainerResistance", true).toBool();
     settings.endGroup();
 
 
 
 
     // -----------------------------------  Settings ----------------------------------------------------------------------
+    settings.beginGroup("setting_" + display_name);
     nb_ant_stick = 1;
     nb_user_studio = 3;
     enable_studio_mode = false;
@@ -62,12 +62,11 @@ Account::Account(QObject *parent) : QObject(parent)  {
     distance_in_km = true;
     strava_access_token = "";
     strava_private_upload = false;
-    training_peaks_access_token = "";
-    training_peaks_refresh_token = "";
+    training_peaks_access_token = settings.value("training_peaks_access_token", "").toString();
+    training_peaks_refresh_token = settings.value("training_peaks_refresh_token", "").toString();
     training_peaks_public_upload = false;
     selfloops_user = "";
     selfloops_pw = "";
-    control_trainer_resistance = true;
     stop_pairing_on_found = true;
     nb_sec_pairing = 2;
     /* ----- */
@@ -141,6 +140,7 @@ Account::Account(QObject *parent) : QObject(parent)  {
     sound_alert_cadence_under_target = false;
     sound_alert_cadence_above_target = false;
 
+    settings.endGroup();
 
     //-------------------------- not in DB ----------------------
 #ifdef Q_OS_WIN32
@@ -151,10 +151,21 @@ Account::Account(QObject *parent) : QObject(parent)  {
 #endif
 
     email_clean = "user1";
-    hashWorkoutDone = QSet<QString>();
-    hashCourseDone = QSet<QString>();
+    QVariant v = settings.value("account_" + display_name+"/hashWorkoutDone");
+    QList<QString> list = v.value<QList<QString>>();
+    hashWorkoutDone = QSet<QString>(list.begin(), list.end());
+
+    v = settings.value("account_" + display_name+"/hashCourseDone");
+    list = v.value<QList<QString>>();
+    hashCourseDone = QSet<QString>(list.begin(), list.end());
     //------------------------------
 
+}
+
+void Account::setControl_trainer_resistance(bool value)
+{
+    control_trainer_resistance = value;
+    settings.setValue("account_" + display_name+"/trainerResistance", value);
 }
 
 
@@ -162,9 +173,7 @@ void Account::saveNbSecShowInterval(int nbSec) {
 
     nb_sec_show_interval = nbSec;
 
-    QSettings settings;
-
-    settings.beginGroup("account");
+    settings.beginGroup("account_" + display_name);
     settings.setValue("nb_sec_show_interval", nb_sec_show_interval);
 
     settings.endGroup();
@@ -174,14 +183,191 @@ void Account::saveNbSecShowIntervalBefore(int nbSec) {
 
     nb_sec_show_interval_before = nbSec;
 
-    QSettings settings;
-
-    settings.beginGroup("account");
+    settings.beginGroup("account_" + display_name);
     settings.setValue("nb_sec_show_interval_before", nb_sec_show_interval_before);
 
     settings.endGroup();
 }
 
+int Account::getFTP(){
+    return this->FTP;
+}
+
+void Account::setFTP(int value){
+    this->FTP = value;
+    settings.setValue("account_" + display_name+"/FTP", value);
+}
+
+int Account::getLTHR(){
+    return this->LTHR;
+}
+
+void Account::setLTHR(int value){
+    this->LTHR = value;
+    settings.setValue("account_" + display_name+"/LTHR", value);
+}
+
+bool Account::getWeightInKg(){
+    return this->weight_in_kg;
+}
+void Account::setWeightInKg(bool isKg){
+    this->weight_in_kg = isKg;
+    settings.setValue("account_" + display_name+"/weight_in_kg", isKg);
+}
+
+double Account::getWeightKg(){
+    return this->weight_kg;
+}
+
+void Account::setWeightKg(double weightKg){
+    this->weight_kg = weightKg;
+    settings.setValue("account_" + display_name+"/weight_kg", weightKg);
+}
+
+int Account::getHeightCm(){
+    return this->height_cm;
+}
+
+void Account::setHeightCm(int height){
+    this->height_cm = height;
+    settings.setValue("account_" + display_name+"/height_cm", height);
+}
+
+double Account::getUserCda(){
+    return this->userCda;
+}
+
+void Account::setUserCda(double cda){
+    this->userCda = cda;
+    settings.setValue("account_" + display_name+"/userCda", cda);
+}
+
+int Account::getWheelCirc(){
+    return this->wheel_circ;
+}
+
+void Account::setWheelCirc(int size_mm){
+    this->wheel_circ = size_mm;
+    settings.setValue("account_" + display_name+"/wheel_circ", size_mm);
+}
+
+double Account::getBikeWeightKg(){
+    return this->bike_weight_kg;
+}
+
+void Account::setBikeWeightKg(double kg){
+    this->bike_weight_kg = kg;
+    settings.setValue("account_" + display_name+"/bike_weight_kg", kg);
+}
+
+int Account::getBikeType(){
+    return this->bike_type;
+}
+
+void Account::setBikeType(int bikeType){
+    this->bike_type = bikeType;
+    settings.setValue("account_" + display_name+"/bike_type", bikeType);
+}
+
+QString Account::getDisplayName(){
+    return this->display_name;
+}
+
+void Account::setDisplayName(QString name){
+    this->display_name = name;
+    settings.setValue("account_" + display_name+"/display_name", name);
+    settings.setValue("last_use", name);
+}
+
+
+
+bool Account::getEnable_studio_mode() const
+{
+    return enable_studio_mode;
+}
+
+QString Account::getTraining_peaks_access_token() const
+{
+    return training_peaks_access_token;
+}
+
+void Account::setTraining_peaks_access_token(const QString &value)
+{
+    training_peaks_access_token = value;
+    settings.setValue("setting_" + display_name+"/training_peaks_access_token", value);
+}
+
+QString Account::getTraining_peaks_refresh_token() const
+{
+    return training_peaks_refresh_token;
+}
+
+void Account::setTraining_peaks_refresh_token(const QString &value)
+{
+    training_peaks_refresh_token = value;
+    settings.setValue("setting_" + display_name+"/training_peaks_refresh_token", value);
+}
+
+int Account::getMinutes_rode() const
+{
+    return minutes_rode;
+}
+
+void Account::setMinutes_rode(int value)
+{
+    minutes_rode = value;
+    settings.setValue("account_" + display_name+"/minutes_rode", value);
+}
+
+QSet<QString> Account::getHashWorkoutDone() const
+{
+    return hashWorkoutDone;
+}
+
+void Account::setHashWorkoutDone(const QSet<QString> &value)
+{
+    hashWorkoutDone = value;
+    saveHashWorkoutDone();
+}
+
+void Account::saveHashWorkoutDone(){
+    //QVariant v;
+    //v.setValue(hashWorkoutDone.values());
+    settings.setValue("account_" + display_name+"/hashWorkoutDone", QVariant(hashWorkoutDone.values()));
+}
+
+void Account::removeHashWorkoutDone(QString name){
+    hashWorkoutDone.remove(name);
+    saveHashWorkoutDone();
+}
+
+void Account::insertHashWorkoutDone(QString name){
+    hashWorkoutDone.insert(name);
+    saveHashWorkoutDone();
+}
+
+int Account::getNb_sec_show_interval() const
+{
+    return nb_sec_show_interval;
+}
+
+int Account::getNb_sec_show_interval_before() const
+{
+    return nb_sec_show_interval_before;
+}
+
+QSet<QString> Account::getHashCourseDone() const
+{
+    return hashCourseDone;
+}
+
+void Account::setHashCourseDone(const QSet<QString> &value)
+{
+    hashCourseDone = value;
+    QVariant v;
+    v.setValue(value.values());
+    settings.setValue("account_" + display_name+"/hashCourseDone", v);
+}
 
 
 

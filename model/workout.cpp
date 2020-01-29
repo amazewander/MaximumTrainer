@@ -350,7 +350,7 @@ void Workout::calculateWorkoutMetrics() {
 
     /// Get user FTP;
     Account *account = qApp->property("Account").value<Account*>();
-    int ftp = account->FTP;
+    int ftp = account->getFTP();
 
 
 

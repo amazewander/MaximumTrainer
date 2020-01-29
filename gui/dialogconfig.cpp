@@ -473,7 +473,7 @@ void DialogConfig::initUi() {
     ui->checkBox_underTargetCadence->setChecked(account->sound_alert_cadence_under_target);
     ui->checkBox_aboveTargetCadence->setChecked(account->sound_alert_cadence_above_target);
 
-    ui->spinBox_value_intervalmessage_duration_sec->setValue(account->nb_sec_show_interval);
+    ui->spinBox_value_intervalmessage_duration_sec->setValue(account->getNb_sec_show_interval());
 
 }
 

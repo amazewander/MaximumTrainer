@@ -251,11 +251,11 @@ void Util::parseJsonTPObject(QString data) {
     QJsonDocument jsonResponse = QJsonDocument::fromJson(data.toUtf8());
     QJsonObject jsonObj = jsonResponse.object();
 
-    account->training_peaks_access_token = jsonObj["access_token"].toString();
-    account->training_peaks_refresh_token = jsonObj["refresh_token"].toString();
+    account->setTraining_peaks_access_token(jsonObj["access_token"].toString());
+    account->setTraining_peaks_refresh_token(jsonObj["refresh_token"].toString());
 
-    qDebug() << "new values are: training_peaks_access_token:" << account->training_peaks_access_token;
-    qDebug() << "new values are: training_peaks_refresh_token:" << account->training_peaks_refresh_token;
+    qDebug() << "new values are: training_peaks_access_token:" << account->getTraining_peaks_access_token();
+    qDebug() << "new values are: training_peaks_refresh_token:" << account->getTraining_peaks_refresh_token();
 }
 
 ///--------------------------------------------------------------------------------------------------------------------
@@ -317,186 +317,163 @@ int Util::parseStravaUploadStatus(QString data) {
 void Util::parseJsonObjectAccount(QString data) {
 
 
-    Account *account = qApp->property("Account").value<Account*>();
+//    Account *account = qApp->property("Account").value<Account*>();
 
 
 
-    QJsonDocument jsonResponse = QJsonDocument::fromJson(data.toUtf8());
-    QJsonArray jsonArray = jsonResponse.array();
+//    QJsonDocument jsonResponse = QJsonDocument::fromJson(data.toUtf8());
+//    QJsonArray jsonArray = jsonResponse.array();
 
 
-    if (jsonArray.size() < 1)
-        return;
+//    if (jsonArray.size() < 1)
+//        return;
 
-    QJsonValue jsonValue = jsonArray.at(0);
-    QJsonObject jsonObj = jsonValue.toObject();
+//    QJsonValue jsonValue = jsonArray.at(0);
+//    QJsonObject jsonObj = jsonValue.toObject();
 
-    //    QJsonObject jsonObj = jsonResponse.object();
-
-
-    account->id = jsonObj["id"].toString().toInt();
-    if (account->id < 1) {
-        account->id = -1;
-    }
-
-    account->subscription_type_id = jsonObj["subscription_type_id"].toString().toInt();
-
-    account->email =  jsonObj["email"].toString();
-    account->password = jsonObj["password"].toString();
-    account->session_mt_id = jsonObj["session_mt_id"].toString();
-    QString session_mt_expire_str = jsonObj["session_mt_expire"].toString();
-    account->session_mt_expire = QDateTime::currentDateTime().fromString(session_mt_expire_str, "yyyy-MM-dd hh:mm:ss");
-
-    account->first_name =  jsonObj["first_name"].toString();
-    account->last_name =  jsonObj["last_name"].toString();
-    account->display_name =  jsonObj["display_name"].toString();
-
-    account->FTP = jsonObj["FTP"].toString().toInt();
-    account->LTHR = jsonObj["LTHR"].toString().toInt();
-    account->minutes_rode = jsonObj["minutes_rode"].toString().toInt();
-    account->weight_kg = jsonObj["weight_kg"].toString().toDouble();
-    account->height_cm = jsonObj["height_cm"].toString().toInt();
+//    //    QJsonObject jsonObj = jsonResponse.object();
 
 
-    int trainer_curve_id = jsonObj["trainer_curve_id"].toString().toInt();
-    PowerCurve curve;
-    curve.setId(trainer_curve_id);
-    curve.setRiderWeightKg(account->weight_kg);
-    account->powerCurve = curve;
-    account->wheel_circ = jsonObj["wheel_circ"].toString().toInt();
-    account->bike_weight_kg = jsonObj["bike_weight_kg"].toString().toDouble();
-    account->bike_type = jsonObj["bike_type"].toString().toInt();
+//    account->id = jsonObj["id"].toString().toInt();
+//    if (account->id < 1) {
+//        account->id = -1;
+//    }
+
+//    account->subscription_type_id = jsonObj["subscription_type_id"].toString().toInt();
+
+//    account->email =  jsonObj["email"].toString();
+//    account->password = jsonObj["password"].toString();
+//    //account->session_mt_id = jsonObj["session_mt_id"].toString();
+//    //QString session_mt_expire_str = jsonObj["session_mt_expire"].toString();
+//    //account->session_mt_expire = QDateTime::currentDateTime().fromString(session_mt_expire_str, "yyyy-MM-dd hh:mm:ss");
+
+//    account->first_name =  jsonObj["first_name"].toString();
+//    account->last_name =  jsonObj["last_name"].toString();
+//    account->display_name =  jsonObj["display_name"].toString();
+
+//    account->setFTP(jsonObj["FTP"].toString().toInt());
+//    account->setLTHR(jsonObj["LTHR"].toString().toInt());
+//    //account->setMinutes_rode(jsonObj["minutes_rode"].toString().toInt());
+//    account->setWeightKg(jsonObj["weight_kg"].toString().toDouble());
+//    account->setHeightCm(jsonObj["height_cm"].toString().toInt());
 
 
-
-    //--- Settings ------------------------------------
-    account->nb_user_studio = jsonObj["nb_user_studio"].toString().toInt();
-    account->enable_studio_mode = jsonObj["enable_studio_mode"].toString().toInt();
-    account->use_pm_for_cadence = jsonObj["use_pm_for_cadence"].toString().toInt();
-    account->use_pm_for_speed = jsonObj["use_pm_for_speed"].toString().toInt();
-
-    account->force_workout_window_on_top = jsonObj["force_workout_window_on_top"].toString().toInt();
-    account->show_included_workout = jsonObj["show_included_workout"].toString().toInt();
-    account->show_included_course = jsonObj["show_included_course"].toString().toInt();
-    account->distance_in_km = jsonObj["distance_in_km"].toString().toInt();
-    account->strava_access_token = jsonObj["strava_access_token"].toString();
-    account->strava_private_upload = jsonObj["strava_private_upload"].toString().toInt();
-
-    account->training_peaks_access_token = jsonObj["training_peaks_access_token"].toString();
-    account->training_peaks_refresh_token = jsonObj["training_peaks_refresh_token"].toString();
-    account->training_peaks_public_upload = jsonObj["training_peaks_public_upload"].toString().toInt();
-
-    account->selfloops_user = jsonObj["selfloops_user"].toString();
-    account->selfloops_pw = jsonObj["selfloops_pw"].toString();
-    account->control_trainer_resistance = jsonObj["control_trainer_resistance"].toString().toInt();
-    account->stop_pairing_on_found = jsonObj["stop_pairing_on_found"].toString().toInt();
-    account->nb_sec_pairing = jsonObj["nb_sec_pairing"].toString().toInt();
-    /* ----- */
-
-
-    account->last_index_selected_config_workout = jsonObj["last_index_selected_config_workout"].toString().toInt();
-    account->last_tab_sub_config_selected =  jsonObj["last_tab_sub_config_selected"].toString().toInt();
-    account->tab_display[0] = jsonObj["tab_display0"].toString();
-    account->tab_display[1] = jsonObj["tab_display1"].toString();
-    account->tab_display[2] = jsonObj["tab_display2"].toString();
-    account->tab_display[3] = jsonObj["tab_display3"].toString();
-    account->tab_display[4] = jsonObj["tab_display4"].toString();
-    account->tab_display[5] = jsonObj["tab_display5"].toString();
-    account->tab_display[6] = jsonObj["tab_display6"].toString();
-    account->tab_display[7] = jsonObj["tab_display7"].toString();
-
-    account->start_trigger  = jsonObj["start_trigger"].toString().toInt();
-    account->value_cadence_start  = jsonObj["value_cadence_start"].toString().toInt();
-    account->value_power_start  = jsonObj["value_power_start"].toString().toInt();
-    account->value_speed_start  = jsonObj["value_speed_start"].toString().toInt();
-
-    account->show_hr_widget  = jsonObj["show_hr_widget"].toString().toInt();
-    account->show_power_widget  = jsonObj["show_power_widget"].toString().toInt();
-    account->show_power_balance_widget  = jsonObj["show_power_balance_widget"].toString().toInt();
-    account->show_cadence_widget  = jsonObj["show_cadence_widget"].toString().toInt();
-    account->show_speed_widget  = jsonObj["show_speed_widget"].toString().toInt();
-    account->show_calories_widget  = jsonObj["show_calories_widget"].toString().toInt();
-    account->show_oxygen_widget  = jsonObj["show_oxygen_widget"].toString().toInt();
-    account->use_virtual_speed  = jsonObj["use_virtual_speed"].toString().toInt();
-    account->show_trainer_speed  = jsonObj["show_trainer_speed"].toString().toInt();
-
-
-    account->display_hr  = jsonObj["display_hr"].toString().toInt();
-    account->display_power  = jsonObj["display_power"].toString().toInt();
-    account->display_power_balance  = jsonObj["display_power_balance"].toString().toInt();
-    account->display_cadence  = jsonObj["display_cadence"].toString().toInt();
-
-    account->show_timer_on_top  = jsonObj["show_timer_on_top"].toString().toInt();
-    account->show_interval_remaining  = jsonObj["show_interval_remaining"].toString().toInt();
-    account->show_workout_remaining  = jsonObj["show_workout_remaining"].toString().toInt();
-    account->show_elapsed  = jsonObj["show_elapsed"].toString().toInt();
-    account->font_size_timer  = jsonObj["font_size_timer"].toString().toInt();
-
-    account->averaging_power  = jsonObj["averaging_power"].toString().toInt();
-    account->offset_power  = jsonObj["offset_power"].toString().toInt();
-
-    account->show_seperator_interval  = jsonObj["show_seperator_interval"].toString().toInt();
-    account->show_grid  = jsonObj["show_grid"].toString().toInt();
-    account->show_hr_target  = jsonObj["show_hr_target"].toString().toInt();
-    account->show_power_target  = jsonObj["show_power_target"].toString().toInt();
-    account->show_cadence_target  = jsonObj["show_cadence_target"].toString().toInt();
-    account->show_speed_target  = jsonObj["show_speed_target"].toString().toInt();
-    account->show_hr_curve  = jsonObj["show_hr_curve"].toString().toInt();
-    account->show_power_curve  = jsonObj["show_power_curve"].toString().toInt();
-    account->show_cadence_curve  = jsonObj["show_cadence_curve"].toString().toInt();
-    account->show_speed_curve  = jsonObj["show_speed_curve"].toString().toInt();
-
-    account->display_video  = jsonObj["display_video"].toString().toInt();
-
-
-    /* ----- */
-    account->sound_player_vol  = jsonObj["sound_player_vol"].toString().toInt();
-    account->enable_sound  = jsonObj["enable_sound"].toString().toInt();
-    account->sound_interval  = jsonObj["sound_interval"].toString().toInt();
-    account->sound_pause_resume_workout  = jsonObj["sound_pause_resume_workout"].toString().toInt();
-    account->sound_achievement  = jsonObj["sound_achievement"].toString().toInt();
-    account->sound_end_workout  = jsonObj["sound_end_workout"].toString().toInt();
-
-    account->sound_alert_power_under_target  = jsonObj["sound_alert_power_under_target"].toString().toInt();
-    account->sound_alert_power_above_target  = jsonObj["sound_alert_power_above_target"].toString().toInt();
-    account->sound_alert_cadence_under_target  = jsonObj["sound_alert_cadence_under_target"].toString().toInt();
-    account->sound_alert_cadence_above_target  = jsonObj["sound_alert_cadence_above_target"].toString().toInt();
+//    int trainer_curve_id = jsonObj["trainer_curve_id"].toString().toInt();
+//    PowerCurve curve;
+//    curve.setId(trainer_curve_id);
+//    curve.setRiderWeightKg(account->getWeightKg());
+//    account->powerCurve = curve;
+//    account->wheel_circ = jsonObj["wheel_circ"].toString().toInt();
+//    account->bike_weight_kg = jsonObj["bike_weight_kg"].toString().toDouble();
+//    account->bike_type = jsonObj["bike_type"].toString().toInt();
 
 
 
-    //////////////////////////////////////////////////////////////////////
-    //    qDebug() << "id:" << id;
-    //    qDebug() << "is_expired_subscription:" << is_expired_subscription;
+//    //--- Settings ------------------------------------
+//    account->nb_user_studio = jsonObj["nb_user_studio"].toString().toInt();
+//    account->enable_studio_mode = jsonObj["enable_studio_mode"].toString().toInt();
+//    account->use_pm_for_cadence = jsonObj["use_pm_for_cadence"].toString().toInt();
+//    account->use_pm_for_speed = jsonObj["use_pm_for_speed"].toString().toInt();
 
-    //    qDebug() << "email:" << email;
-    //    qDebug() << "password:" << password;
-    //    qDebug() << "session_mt_id:" << session_mt_id;
-    //    qDebug() << "session_mt_expire:" << session_mt_expire;
+//    account->force_workout_window_on_top = jsonObj["force_workout_window_on_top"].toString().toInt();
+//    account->show_included_workout = jsonObj["show_included_workout"].toString().toInt();
+//    account->show_included_course = jsonObj["show_included_course"].toString().toInt();
+//    account->distance_in_km = jsonObj["distance_in_km"].toString().toInt();
+//    account->strava_access_token = jsonObj["strava_access_token"].toString();
+//    account->strava_private_upload = jsonObj["strava_private_upload"].toString().toInt();
 
-    //    qDebug() << "first_name:" << first_name;
-    //    qDebug() << "last_name:" << last_name;
-    //    qDebug() << "display_name:" << display_name;
+//    account->training_peaks_access_token = jsonObj["training_peaks_access_token"].toString();
+//    account->training_peaks_refresh_token = jsonObj["training_peaks_refresh_token"].toString();
+//    account->training_peaks_public_upload = jsonObj["training_peaks_public_upload"].toString().toInt();
 
-    //    qDebug() << "**********WEIGHT IS " << weight_kg;
-    //    qDebug() << "FTP:" << FTP;
-    //    qDebug() << "LTHR:" << LTHR;
-
-    //    qDebug() << "minutes_rode:" << minutes_rode;
-
-    ////////////////////////////////////////////////////////////////////////////////////
-
-
-
-    ///Stripped email
-    int posArobas = account->email.indexOf("@");
-    if (posArobas == -1) //should never happen
-        posArobas = 5;
-    QString tmpEmail = account->email.left(posArobas);
-    account->email_clean = Util::cleanQString(tmpEmail);
+//    account->selfloops_user = jsonObj["selfloops_user"].toString();
+//    account->selfloops_pw = jsonObj["selfloops_pw"].toString();
+//    account->control_trainer_resistance = jsonObj["control_trainer_resistance"].toString().toInt();
+//    account->stop_pairing_on_found = jsonObj["stop_pairing_on_found"].toString().toInt();
+//    account->nb_sec_pairing = jsonObj["nb_sec_pairing"].toString().toInt();
+//    /* ----- */
 
 
+//    account->last_index_selected_config_workout = jsonObj["last_index_selected_config_workout"].toString().toInt();
+//    account->last_tab_sub_config_selected =  jsonObj["last_tab_sub_config_selected"].toString().toInt();
+//    account->tab_display[0] = jsonObj["tab_display0"].toString();
+//    account->tab_display[1] = jsonObj["tab_display1"].toString();
+//    account->tab_display[2] = jsonObj["tab_display2"].toString();
+//    account->tab_display[3] = jsonObj["tab_display3"].toString();
+//    account->tab_display[4] = jsonObj["tab_display4"].toString();
+//    account->tab_display[5] = jsonObj["tab_display5"].toString();
+//    account->tab_display[6] = jsonObj["tab_display6"].toString();
+//    account->tab_display[7] = jsonObj["tab_display7"].toString();
 
-    qDebug() << "Saving Account Object - done";
+//    account->start_trigger  = jsonObj["start_trigger"].toString().toInt();
+//    account->value_cadence_start  = jsonObj["value_cadence_start"].toString().toInt();
+//    account->value_power_start  = jsonObj["value_power_start"].toString().toInt();
+//    account->value_speed_start  = jsonObj["value_speed_start"].toString().toInt();
+
+//    account->show_hr_widget  = jsonObj["show_hr_widget"].toString().toInt();
+//    account->show_power_widget  = jsonObj["show_power_widget"].toString().toInt();
+//    account->show_power_balance_widget  = jsonObj["show_power_balance_widget"].toString().toInt();
+//    account->show_cadence_widget  = jsonObj["show_cadence_widget"].toString().toInt();
+//    account->show_speed_widget  = jsonObj["show_speed_widget"].toString().toInt();
+//    account->show_calories_widget  = jsonObj["show_calories_widget"].toString().toInt();
+//    account->show_oxygen_widget  = jsonObj["show_oxygen_widget"].toString().toInt();
+//    account->use_virtual_speed  = jsonObj["use_virtual_speed"].toString().toInt();
+//    account->show_trainer_speed  = jsonObj["show_trainer_speed"].toString().toInt();
+
+
+//    account->display_hr  = jsonObj["display_hr"].toString().toInt();
+//    account->display_power  = jsonObj["display_power"].toString().toInt();
+//    account->display_power_balance  = jsonObj["display_power_balance"].toString().toInt();
+//    account->display_cadence  = jsonObj["display_cadence"].toString().toInt();
+
+//    account->show_timer_on_top  = jsonObj["show_timer_on_top"].toString().toInt();
+//    account->show_interval_remaining  = jsonObj["show_interval_remaining"].toString().toInt();
+//    account->show_workout_remaining  = jsonObj["show_workout_remaining"].toString().toInt();
+//    account->show_elapsed  = jsonObj["show_elapsed"].toString().toInt();
+//    account->font_size_timer  = jsonObj["font_size_timer"].toString().toInt();
+
+//    account->averaging_power  = jsonObj["averaging_power"].toString().toInt();
+//    account->offset_power  = jsonObj["offset_power"].toString().toInt();
+
+//    account->show_seperator_interval  = jsonObj["show_seperator_interval"].toString().toInt();
+//    account->show_grid  = jsonObj["show_grid"].toString().toInt();
+//    account->show_hr_target  = jsonObj["show_hr_target"].toString().toInt();
+//    account->show_power_target  = jsonObj["show_power_target"].toString().toInt();
+//    account->show_cadence_target  = jsonObj["show_cadence_target"].toString().toInt();
+//    account->show_speed_target  = jsonObj["show_speed_target"].toString().toInt();
+//    account->show_hr_curve  = jsonObj["show_hr_curve"].toString().toInt();
+//    account->show_power_curve  = jsonObj["show_power_curve"].toString().toInt();
+//    account->show_cadence_curve  = jsonObj["show_cadence_curve"].toString().toInt();
+//    account->show_speed_curve  = jsonObj["show_speed_curve"].toString().toInt();
+
+//    account->display_video  = jsonObj["display_video"].toString().toInt();
+
+
+//    /* ----- */
+//    account->sound_player_vol  = jsonObj["sound_player_vol"].toString().toInt();
+//    account->enable_sound  = jsonObj["enable_sound"].toString().toInt();
+//    account->sound_interval  = jsonObj["sound_interval"].toString().toInt();
+//    account->sound_pause_resume_workout  = jsonObj["sound_pause_resume_workout"].toString().toInt();
+//    account->sound_achievement  = jsonObj["sound_achievement"].toString().toInt();
+//    account->sound_end_workout  = jsonObj["sound_end_workout"].toString().toInt();
+
+//    account->sound_alert_power_under_target  = jsonObj["sound_alert_power_under_target"].toString().toInt();
+//    account->sound_alert_power_above_target  = jsonObj["sound_alert_power_above_target"].toString().toInt();
+//    account->sound_alert_cadence_under_target  = jsonObj["sound_alert_cadence_under_target"].toString().toInt();
+//    account->sound_alert_cadence_above_target  = jsonObj["sound_alert_cadence_above_target"].toString().toInt();
+
+
+
+//    ///Stripped email
+//    int posArobas = account->email.indexOf("@");
+//    if (posArobas == -1) //should never happen
+//        posArobas = 5;
+//    QString tmpEmail = account->email.left(posArobas);
+//    account->email_clean = Util::cleanQString(tmpEmail);
+
+
+
+//    qDebug() << "Saving Account Object - done";
 
 
 }
