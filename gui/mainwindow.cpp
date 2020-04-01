@@ -155,7 +155,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
     /// Update create workout graph on FTP and LTHR change
-    connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_create, SLOT(computeWorkout()) );
+    connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_create, SLOT(resetWorkout()) );
     ///Also update workout metrics based on FTP
     connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_workout1, SLOT(updateTableViewMetrics()) );
     connect(this, SIGNAL(ftpAndTabProfileChanged()), ui->tab_workout1, SLOT(refreshMapWorkout()) );
@@ -1778,6 +1778,8 @@ void MainWindow::on_comboBox_user_currentIndexChanged(const QString &name)
 {
     account->setDisplayName(name);
     account = new Account(this);
+    qApp->setProperty("Account", QVariant::fromValue<Account*>(account));
     this->loadUserData();
     this->loadSensorList();
+    emit ftpAndTabProfileChanged();
 }
